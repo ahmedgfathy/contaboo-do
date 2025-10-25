@@ -4,6 +4,9 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UserManagementController;
 use App\Http\Controllers\LeadsController;
 use App\Http\Controllers\PropertiesController;
+use App\Http\Controllers\OpportunitiesController;
+use App\Http\Controllers\ActivitiesController;
+use App\Http\Controllers\ContactsController;
 use App\Models\Lead;
 use App\Models\LeadAudit;
 use App\Models\Property;
@@ -117,9 +120,18 @@ Route::middleware('auth')->group(function () {
     Route::post('/properties/import', [PropertiesController::class, 'import'])->name('properties.import');
     
     // Opportunities Routes
-    Route::get('/opportunities', function () {
-        return Inertia::render('Opportunities/Index');
-    })->name('opportunities.index');
+    Route::resource('opportunities', OpportunitiesController::class);
+    Route::post('/opportunities/export', [OpportunitiesController::class, 'export'])->name('opportunities.export');
+    Route::post('/opportunities/import', [OpportunitiesController::class, 'import'])->name('opportunities.import');
+    
+    // Activities Routes
+    Route::resource('activities', ActivitiesController::class);
+    Route::post('/activities/{activity}/complete', [ActivitiesController::class, 'complete'])->name('activities.complete');
+    Route::post('/activities/{activity}/uncomplete', [ActivitiesController::class, 'uncomplete'])->name('activities.uncomplete');
+    
+    // Contacts Routes
+    Route::resource('contacts', ContactsController::class);
+    Route::post('/contacts/export', [ContactsController::class, 'export'])->name('contacts.export');
     
     // Reports Routes
     Route::get('/reports', function () {
