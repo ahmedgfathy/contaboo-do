@@ -7,6 +7,7 @@ use App\Http\Controllers\PropertiesController;
 use App\Http\Controllers\OpportunitiesController;
 use App\Http\Controllers\ActivitiesController;
 use App\Http\Controllers\ContactsController;
+use App\Http\Controllers\SavedFiltersController;
 use App\Models\Lead;
 use App\Models\LeadAudit;
 use App\Models\Property;
@@ -144,6 +145,12 @@ Route::middleware('auth')->group(function () {
     Route::get('/users', [UserManagementController::class, 'index'])->name('users.index');
     Route::patch('/users/{user}/role', [UserManagementController::class, 'updateRole'])->name('users.updateRole');
     Route::delete('/users/{user}', [UserManagementController::class, 'destroy'])->name('users.destroy');
+    
+    // Saved Filters Routes
+    Route::get('/api/saved-filters', [SavedFiltersController::class, 'index'])->name('saved-filters.index');
+    Route::post('/api/saved-filters', [SavedFiltersController::class, 'store'])->name('saved-filters.store');
+    Route::put('/api/saved-filters/{savedFilter}', [SavedFiltersController::class, 'update'])->name('saved-filters.update');
+    Route::delete('/api/saved-filters/{savedFilter}', [SavedFiltersController::class, 'destroy'])->name('saved-filters.destroy');
 });
 
 require __DIR__.'/auth.php';

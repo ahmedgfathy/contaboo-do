@@ -66,8 +66,17 @@ class ActivitiesController extends Controller
 
         $activities = $query->paginate(15)->withQueryString();
 
+        // Calculate statistics
+        $stats = [
+            'total_activities' => Activity::count(),
+            'pending_activities' => Activity::where('status', 'pending')->count(),
+            'in_progress_activities' => Activity::where('status', 'in_progress')->count(),
+            'completed_activities' => Activity::where('status', 'completed')->count(),
+        ];
+
         return Inertia::render('Activities/Index', [
             'activities' => $activities,
+            'stats' => $stats,
             'filters' => $request->only(['search', 'type', 'status', 'priority', 'assigned_to', 'date_from', 'date_to', 'overdue']),
             'users' => User::select('id', 'name')->get(),
             'types' => ['call', 'email', 'meeting', 'task', 'note'],

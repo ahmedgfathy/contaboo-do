@@ -1,11 +1,16 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import CustomFilterModal from '@/Components/CustomFilterModal';
 import { Head, Link, router, useForm } from '@inertiajs/react';
 import { useState, useEffect } from 'react';
 
-export default function PropertiesIndex({ properties, users, filters, types, statuses, listing_types, stats }) {
+export default function PropertiesIndex({ properties, users, filters, types, statuses, listing_types, stats, savedFilters, availableColumns }) {
     const [showFilters, setShowFilters] = useState(false);
     const [importFile, setImportFile] = useState(null);
     const [showImportModal, setShowImportModal] = useState(false);
+    const [showFilterModal, setShowFilterModal] = useState(false);
+    const [selectedFilter, setSelectedFilter] = useState(null);
+    const [editingFilter, setEditingFilter] = useState(null);
+    const [visibleColumns, setVisibleColumns] = useState([]);
     // Load view preference from localStorage, default to 'list'
     const [viewMode, setViewMode] = useState(() => {
         if (typeof window !== 'undefined') {
@@ -63,6 +68,45 @@ export default function PropertiesIndex({ properties, users, filters, types, sta
             preserveState: false,
             preserveScroll: false,
         });
+    };
+
+    const handleApplyFilter = (filter) => {
+        setSelectedFilter(filter);
+        if (filter.columns && filter.columns.length > 0) {
+            setVisibleColumns(filter.columns);
+        }
+        if (filter.conditions && filter.conditions.length > 0) {
+            const newFilterData = { ...searchForm.data };
+            filter.conditions.forEach(condition => {
+                newFilterData[condition.field] = condition.value;
+            });
+            router.get(route('properties.index'), newFilterData, {
+                preserveState: true,
+                preserveScroll: true,
+            });
+        }
+    };
+
+    const handleDeleteFilter = async (filterId) => {
+        if (confirm('Are you sure you want to delete this filter?')) {
+            try {
+                await axios.delete(route('saved-filters.destroy', filterId));
+                router.reload();
+            } catch (error) {
+                console.error('Error deleting filter:', error);
+                alert('Error deleting filter. Please try again.');
+            }
+        }
+    };
+
+    const handleEditFilter = (filter) => {
+        setEditingFilter(filter);
+        setShowFilterModal(true);
+    };
+
+    const isColumnVisible = (columnValue) => {
+        if (visibleColumns.length === 0) return true;
+        return visibleColumns.includes(columnValue);
     };
 
     const handleDelete = (id) => {
@@ -212,8 +256,8 @@ export default function PropertiesIndex({ properties, users, filters, types, sta
                 )}
 
                 {/* Header Actions */}
-                <div className="flex flex-wrap items-center justify-between gap-4">
-                    <div className="flex items-center gap-4">
+                <div className="flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-2 flex-wrap">
                         <Link
                             href={route('properties.create')}
                             className="inline-flex items-center rounded-lg bg-gradient-to-r from-indigo-600 to-purple-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:from-indigo-700 hover:to-purple-700"
@@ -241,10 +285,75 @@ export default function PropertiesIndex({ properties, users, filters, types, sta
                             </svg>
                             Export
                         </button>
+
+                        {/* Custom Filters Section */}
+                        <div className="flex items-center gap-2">
+                            <label className="text-sm font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap">
+                                Filters:
+                            </label>
+                            <select
+                                value={selectedFilter?.id || ''}
+                                onChange={(e) => {
+                                    const filter = savedFilters.find(f => f.id === parseInt(e.target.value));
+                                    if (filter) {
+                                        handleApplyFilter(filter);
+                                    } else {
+                                        setSelectedFilter(null);
+                                        setVisibleColumns([]);
+                                        router.get(route('properties.index'), {}, {
+                                            preserveState: true,
+                                            preserveScroll: true,
+                                        });
+                                    }
+                                }}
+                                className="rounded-lg border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                            >
+                                <option value="">All (No Filter)</option>
+                                {savedFilters.map((filter) => (
+                                    <option key={filter.id} value={filter.id}>
+                                        {filter.name} {filter.is_public ? '(Public)' : '(Private)'}
+                                    </option>
+                                ))}
+                            </select>
+                            <button
+                                onClick={() => {
+                                    setEditingFilter(null);
+                                    setShowFilterModal(true);
+                                }}
+                                className="inline-flex items-center rounded-lg border border-gray-300 bg-white p-2 text-gray-700 shadow-sm hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+                                title="Create Filter"
+                            >
+                                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                                </svg>
+                            </button>
+                            {selectedFilter && (
+                                <>
+                                    <button
+                                        onClick={() => handleEditFilter(selectedFilter)}
+                                        className="inline-flex items-center rounded-lg border border-gray-300 bg-white p-2 text-gray-700 shadow-sm hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+                                        title="Edit Filter"
+                                    >
+                                        <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                        </svg>
+                                    </button>
+                                    <button
+                                        onClick={() => handleDeleteFilter(selectedFilter.id)}
+                                        className="inline-flex items-center rounded-lg border border-red-300 bg-white p-2 text-red-700 shadow-sm hover:bg-red-50 dark:border-red-600 dark:bg-gray-800 dark:text-red-400 dark:hover:bg-red-900/20"
+                                        title="Delete Filter"
+                                    >
+                                        <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                        </svg>
+                                    </button>
+                                </>
+                            )}
+                        </div>
                     </div>
 
                     {/* View Toggle */}
-                    <div className="flex items-center gap-2 rounded-lg border border-gray-300 p-1 dark:border-gray-600">
+                    <div className="flex items-center gap-2 rounded-lg border border-gray-300 p-1 dark:border-gray-600 flex-shrink-0">
                         <button
                             onClick={() => handleViewModeChange('list')}
                             className={`inline-flex items-center rounded px-3 py-1.5 text-sm font-medium transition ${
@@ -278,6 +387,7 @@ export default function PropertiesIndex({ properties, users, filters, types, sta
                 <div className="rounded-lg bg-white shadow dark:bg-gray-800">
                     <div className="p-4">
                         <div className="space-y-4">
+                            {/* Search Bar */}
                             <div className="flex gap-4">
                                 <div className="flex-1">
                                     <input
@@ -450,30 +560,56 @@ export default function PropertiesIndex({ properties, users, filters, types, sta
                         <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                             <thead className="bg-gray-50 dark:bg-gray-900">
                                 <tr>
-                                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
-                                        Property
-                                    </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
-                                        Type
-                                    </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
-                                        Status
-                                    </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
-                                        Listing
-                                    </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
-                                        Location
-                                    </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
-                                        Details
-                                    </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
-                                        Price
-                                    </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
-                                        Assigned To
-                                    </th>
+                                    {isColumnVisible('title') && (
+                                        <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                                            Property
+                                        </th>
+                                    )}
+                                    {isColumnVisible('type') && (
+                                        <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                                            Type
+                                        </th>
+                                    )}
+                                    {isColumnVisible('status') && (
+                                        <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                                            Status
+                                        </th>
+                                    )}
+                                    {isColumnVisible('listing_type') && (
+                                        <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                                            Listing
+                                        </th>
+                                    )}
+                                    {(isColumnVisible('city') || isColumnVisible('country')) && (
+                                        <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                                            Location
+                                        </th>
+                                    )}
+                                    {(isColumnVisible('bedrooms') || isColumnVisible('bathrooms') || isColumnVisible('area')) && (
+                                        <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                                            Details
+                                        </th>
+                                    )}
+                                    {isColumnVisible('price') && (
+                                        <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                                            Price
+                                        </th>
+                                    )}
+                                    {isColumnVisible('assigned_to') && (
+                                        <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                                            Assigned To
+                                        </th>
+                                    )}
+                                    {isColumnVisible('reference_number') && (
+                                        <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                                            Reference
+                                        </th>
+                                    )}
+                                    {isColumnVisible('created_at') && (
+                                        <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                                            Created
+                                        </th>
+                                    )}
                                     <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
                                         Actions
                                     </th>
@@ -482,7 +618,7 @@ export default function PropertiesIndex({ properties, users, filters, types, sta
                             <tbody className="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-800">
                                 {properties.data.length === 0 ? (
                                     <tr>
-                                        <td colSpan="9" className="px-6 py-12 text-center">
+                                        <td colSpan="20" className="px-6 py-12 text-center">
                                             <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                                             </svg>
@@ -492,46 +628,72 @@ export default function PropertiesIndex({ properties, users, filters, types, sta
                                 ) : (
                                     properties.data.map((property) => (
                                         <tr key={property.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
-                                            <td className="whitespace-nowrap px-6 py-4">
-                                                <div className="text-sm font-medium text-gray-900 dark:text-white">
-                                                    {property.title}
-                                                </div>
-                                                {property.reference_number && (
-                                                    <div className="text-sm text-gray-500 dark:text-gray-400">
-                                                        Ref: {property.reference_number}
+                                            {isColumnVisible('title') && (
+                                                <td className="whitespace-nowrap px-6 py-4">
+                                                    <div className="text-sm font-medium text-gray-900 dark:text-white">
+                                                        {property.title}
                                                     </div>
-                                                )}
-                                            </td>
-                                            <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-900 dark:text-white">
-                                                {getTypeLabel(property.type)}
-                                            </td>
-                                            <td className="whitespace-nowrap px-6 py-4">
-                                                <span className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${getStatusColor(property.status)}`}>
-                                                    {property.status.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
-                                                </span>
-                                            </td>
-                                            <td className="whitespace-nowrap px-6 py-4">
-                                                <span className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${getListingTypeColor(property.listing_type)}`}>
-                                                    {property.listing_type.charAt(0).toUpperCase() + property.listing_type.slice(1)}
-                                                </span>
-                                            </td>
-                                            <td className="whitespace-nowrap px-6 py-4">
-                                                <div className="text-sm text-gray-900 dark:text-white">{property.city}</div>
-                                                <div className="text-sm text-gray-500 dark:text-gray-400">{property.country}</div>
-                                            </td>
-                                            <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
-                                                {property.bedrooms && `${property.bedrooms} bed`}
-                                                {property.bedrooms && property.bathrooms && ' • '}
-                                                {property.bathrooms && `${property.bathrooms} bath`}
-                                                {(property.bedrooms || property.bathrooms) && property.area && ' • '}
-                                                {property.area && `${property.area} m²`}
-                                            </td>
-                                            <td className="whitespace-nowrap px-6 py-4 text-sm font-semibold text-gray-900 dark:text-white">
-                                                ${parseFloat(property.price).toLocaleString()}
-                                            </td>
-                                            <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-900 dark:text-white">
-                                                {property.assigned_to?.name || 'Unassigned'}
-                                            </td>
+                                                    {property.reference_number && !isColumnVisible('reference_number') && (
+                                                        <div className="text-sm text-gray-500 dark:text-gray-400">
+                                                            Ref: {property.reference_number}
+                                                        </div>
+                                                    )}
+                                                </td>
+                                            )}
+                                            {isColumnVisible('type') && (
+                                                <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-900 dark:text-white">
+                                                    {getTypeLabel(property.type)}
+                                                </td>
+                                            )}
+                                            {isColumnVisible('status') && (
+                                                <td className="whitespace-nowrap px-6 py-4">
+                                                    <span className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${getStatusColor(property.status)}`}>
+                                                        {property.status.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
+                                                    </span>
+                                                </td>
+                                            )}
+                                            {isColumnVisible('listing_type') && (
+                                                <td className="whitespace-nowrap px-6 py-4">
+                                                    <span className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${getListingTypeColor(property.listing_type)}`}>
+                                                        {property.listing_type.charAt(0).toUpperCase() + property.listing_type.slice(1)}
+                                                    </span>
+                                                </td>
+                                            )}
+                                            {(isColumnVisible('city') || isColumnVisible('country')) && (
+                                                <td className="whitespace-nowrap px-6 py-4">
+                                                    {isColumnVisible('city') && <div className="text-sm text-gray-900 dark:text-white">{property.city}</div>}
+                                                    {isColumnVisible('country') && <div className="text-sm text-gray-500 dark:text-gray-400">{property.country}</div>}
+                                                </td>
+                                            )}
+                                            {(isColumnVisible('bedrooms') || isColumnVisible('bathrooms') || isColumnVisible('area')) && (
+                                                <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
+                                                    {isColumnVisible('bedrooms') && property.bedrooms && `${property.bedrooms} bed`}
+                                                    {isColumnVisible('bedrooms') && property.bedrooms && isColumnVisible('bathrooms') && property.bathrooms && ' • '}
+                                                    {isColumnVisible('bathrooms') && property.bathrooms && `${property.bathrooms} bath`}
+                                                    {((isColumnVisible('bedrooms') && property.bedrooms) || (isColumnVisible('bathrooms') && property.bathrooms)) && isColumnVisible('area') && property.area && ' • '}
+                                                    {isColumnVisible('area') && property.area && `${property.area} m²`}
+                                                </td>
+                                            )}
+                                            {isColumnVisible('price') && (
+                                                <td className="whitespace-nowrap px-6 py-4 text-sm font-semibold text-gray-900 dark:text-white">
+                                                    ${parseFloat(property.price).toLocaleString()}
+                                                </td>
+                                            )}
+                                            {isColumnVisible('assigned_to') && (
+                                                <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-900 dark:text-white">
+                                                    {property.assigned_to?.name || 'Unassigned'}
+                                                </td>
+                                            )}
+                                            {isColumnVisible('reference_number') && (
+                                                <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
+                                                    {property.reference_number || '-'}
+                                                </td>
+                                            )}
+                                            {isColumnVisible('created_at') && (
+                                                <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
+                                                    {new Date(property.created_at).toLocaleDateString()}
+                                                </td>
+                                            )}
                                             <td className="whitespace-nowrap px-6 py-4 text-right text-sm font-medium">
                                                 <div className="flex items-center justify-end gap-2">
                                                     <Link
@@ -839,6 +1001,21 @@ export default function PropertiesIndex({ properties, users, filters, types, sta
                     </div>
                 </div>
             )}
+
+            {/* Custom Filter Modal */}
+            <CustomFilterModal
+                show={showFilterModal}
+                onClose={() => {
+                    setShowFilterModal(false);
+                    setEditingFilter(null);
+                }}
+                types={types}
+                statuses={statuses}
+                listingTypes={listing_types}
+                users={users}
+                availableColumns={availableColumns}
+                editingFilter={editingFilter}
+            />
         </AuthenticatedLayout>
     );
 }

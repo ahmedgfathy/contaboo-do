@@ -5,9 +5,11 @@ namespace App\Http\Controllers;
 use App\Models\Lead;
 use App\Models\User;
 use App\Models\LeadAudit;
+use App\Models\SavedFilter;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 
 class LeadsController extends Controller
@@ -73,10 +75,33 @@ class LeadsController extends Controller
             'qualified_leads' => Lead::where('status', 'qualified')->count(),
         ];
 
+        // Get saved filters for this module
+        $savedFilters = SavedFilter::accessibleBy(Auth::id())
+            ->where('module', 'leads')
+            ->orderBy('name')
+            ->get();
+
+        // Available columns for filtering
+        $availableColumns = [
+            ['value' => 'first_name', 'label' => 'First Name'],
+            ['value' => 'last_name', 'label' => 'Last Name'],
+            ['value' => 'email', 'label' => 'Email'],
+            ['value' => 'phone', 'label' => 'Phone'],
+            ['value' => 'company', 'label' => 'Company'],
+            ['value' => 'job_title', 'label' => 'Job Title'],
+            ['value' => 'status', 'label' => 'Status'],
+            ['value' => 'source', 'label' => 'Source'],
+            ['value' => 'city', 'label' => 'City'],
+            ['value' => 'assigned_to', 'label' => 'Assigned To'],
+            ['value' => 'created_at', 'label' => 'Created Date'],
+        ];
+
         return Inertia::render('Leads/Index', [
             'leads' => $leads,
             'users' => $users,
             'stats' => $stats,
+            'savedFilters' => $savedFilters,
+            'availableColumns' => $availableColumns,
             'filters' => $request->only(['search', 'status', 'source', 'assigned_to', 'date_from', 'date_to']),
             'statuses' => ['new', 'contacted', 'qualified', 'proposal', 'negotiation', 'won', 'lost'],
             'sources' => ['website', 'referral', 'social_media', 'email_campaign', 'cold_call', 'trade_show', 'partner', 'other'],

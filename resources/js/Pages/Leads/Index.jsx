@@ -1,12 +1,18 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, router, useForm } from '@inertiajs/react';
 import { useState, useEffect } from 'react';
+import CustomFilterModal from '@/Components/CustomFilterModal';
+import axios from 'axios';
 
-export default function LeadsIndex({ leads, users, filters, statuses, sources, stats }) {
+export default function LeadsIndex({ leads, users, filters, statuses, sources, stats, savedFilters = [], availableColumns = [] }) {
     const [showFilters, setShowFilters] = useState(false);
     const [importFile, setImportFile] = useState(null);
     const [showImportModal, setShowImportModal] = useState(false);
     const [selectedLeads, setSelectedLeads] = useState([]);
+    const [showFilterModal, setShowFilterModal] = useState(false);
+    const [selectedFilter, setSelectedFilter] = useState(null);
+    const [editingFilter, setEditingFilter] = useState(null);
+    const [visibleColumns, setVisibleColumns] = useState([]);
 
     const searchForm = useForm({
         search: filters.search || '',
@@ -89,6 +95,46 @@ export default function LeadsIndex({ leads, users, filters, statuses, sources, s
             lost: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400',
         };
         return colors[status] || colors.new;
+    };
+
+    // Custom filter functions
+    const handleApplyFilter = (filter) => {
+        setSelectedFilter(filter);
+        setVisibleColumns(filter.columns || []);
+        
+        const newData = { ...searchForm.data };
+        filter.conditions.forEach(condition => {
+            if (condition.field && condition.value) {
+                newData[condition.field] = condition.value;
+            }
+        });
+        
+        router.get(route('leads.index'), newData, {
+            preserveState: true,
+            preserveScroll: true,
+        });
+    };
+
+    const handleDeleteFilter = async (filterId) => {
+        if (confirm('Are you sure you want to delete this filter?')) {
+            try {
+                await axios.delete(`/api/saved-filters/${filterId}`);
+                router.reload();
+            } catch (error) {
+                console.error('Error deleting filter:', error);
+                alert('Failed to delete filter');
+            }
+        }
+    };
+
+    const handleEditFilter = (filter) => {
+        setEditingFilter(filter);
+        setShowFilterModal(true);
+    };
+
+    const isColumnVisible = (columnValue) => {
+        if (visibleColumns.length === 0) return true;
+        return visibleColumns.includes(columnValue);
     };
 
     return (
@@ -186,8 +232,8 @@ export default function LeadsIndex({ leads, users, filters, statuses, sources, s
                 )}
 
                 {/* Header Actions */}
-                <div className="flex flex-wrap items-center justify-between gap-4">
-                    <div className="flex items-center gap-4">
+                <div className="flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-2 flex-wrap">
                         <Link
                             href={route('leads.create')}
                             className="inline-flex items-center rounded-lg bg-gradient-to-r from-indigo-600 to-purple-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:from-indigo-700 hover:to-purple-700"
@@ -215,6 +261,71 @@ export default function LeadsIndex({ leads, users, filters, statuses, sources, s
                             </svg>
                             Export
                         </button>
+
+                        {/* Custom Filters Section */}
+                        <div className="flex items-center gap-2">
+                            <label className="text-sm font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap">
+                                Filters:
+                            </label>
+                            <select
+                                value={selectedFilter?.id || ''}
+                                onChange={(e) => {
+                                    const filter = savedFilters.find(f => f.id === parseInt(e.target.value));
+                                    if (filter) {
+                                        handleApplyFilter(filter);
+                                    } else {
+                                        setSelectedFilter(null);
+                                        setVisibleColumns([]);
+                                        router.get(route('leads.index'), {}, {
+                                            preserveState: true,
+                                            preserveScroll: true,
+                                        });
+                                    }
+                                }}
+                                className="rounded-lg border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                            >
+                                <option value="">All (No Filter)</option>
+                                {savedFilters.map((filter) => (
+                                    <option key={filter.id} value={filter.id}>
+                                        {filter.name} {filter.is_public ? '(Public)' : '(Private)'}
+                                    </option>
+                                ))}
+                            </select>
+                            <button
+                                onClick={() => {
+                                    setEditingFilter(null);
+                                    setShowFilterModal(true);
+                                }}
+                                className="inline-flex items-center rounded-lg border border-gray-300 bg-white p-2 text-gray-700 shadow-sm hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+                                title="Create Filter"
+                            >
+                                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                                </svg>
+                            </button>
+                            {selectedFilter && (
+                                <>
+                                    <button
+                                        onClick={() => handleEditFilter(selectedFilter)}
+                                        className="inline-flex items-center rounded-lg border border-gray-300 bg-white p-2 text-gray-700 shadow-sm hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+                                        title="Edit Filter"
+                                    >
+                                        <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                        </svg>
+                                    </button>
+                                    <button
+                                        onClick={() => handleDeleteFilter(selectedFilter.id)}
+                                        className="inline-flex items-center rounded-lg border border-red-300 bg-white p-2 text-red-700 shadow-sm hover:bg-red-50 dark:border-red-600 dark:bg-gray-800 dark:text-red-400 dark:hover:bg-red-900/20"
+                                        title="Delete Filter"
+                                    >
+                                        <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                        </svg>
+                                    </button>
+                                </>
+                            )}
+                        </div>
                     </div>
                 </div>
 
@@ -540,6 +651,21 @@ export default function LeadsIndex({ leads, users, filters, statuses, sources, s
                     </div>
                 </div>
             )}
+
+            {/* Custom Filter Modal */}
+            <CustomFilterModal
+                show={showFilterModal}
+                onClose={() => {
+                    setShowFilterModal(false);
+                    setEditingFilter(null);
+                }}
+                types={[]}
+                statuses={statuses}
+                listingTypes={[]}
+                users={users}
+                availableColumns={availableColumns}
+                editingFilter={editingFilter}
+            />
         </AuthenticatedLayout>
     );
 }

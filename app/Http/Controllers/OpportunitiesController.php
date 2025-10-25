@@ -7,9 +7,11 @@ use App\Models\Lead;
 use App\Models\Property;
 use App\Models\User;
 use App\Models\OpportunityAudit;
+use App\Models\SavedFilter;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 
 class OpportunitiesController extends Controller
@@ -95,10 +97,33 @@ class OpportunitiesController extends Controller
             'lost_opportunities' => Opportunity::where('status', 'lost')->count(),
         ];
 
+        // Get saved filters for this module
+        $savedFilters = SavedFilter::accessibleBy(Auth::id())
+            ->where('module', 'opportunities')
+            ->orderBy('name')
+            ->get();
+
+        // Available columns for filtering
+        $availableColumns = [
+            ['value' => 'title', 'label' => 'Title'],
+            ['value' => 'stage', 'label' => 'Stage'],
+            ['value' => 'status', 'label' => 'Status'],
+            ['value' => 'type', 'label' => 'Type'],
+            ['value' => 'value', 'label' => 'Value'],
+            ['value' => 'probability', 'label' => 'Probability'],
+            ['value' => 'expected_close_date', 'label' => 'Expected Close Date'],
+            ['value' => 'lead_id', 'label' => 'Lead'],
+            ['value' => 'property_id', 'label' => 'Property'],
+            ['value' => 'assigned_to', 'label' => 'Assigned To'],
+            ['value' => 'created_at', 'label' => 'Created Date'],
+        ];
+
         return Inertia::render('Opportunities/Index', [
             'opportunities' => $opportunities,
             'users' => $users,
             'stats' => $stats,
+            'savedFilters' => $savedFilters,
+            'availableColumns' => $availableColumns,
             'filters' => $request->only(['search', 'stage', 'status', 'type', 'assigned_to', 'value_min', 'value_max', 'probability_min', 'probability_max', 'date_from', 'date_to']),
             'stages' => ['qualification', 'viewing', 'negotiation', 'proposal', 'contract', 'closed_won', 'closed_lost'],
             'statuses' => ['active', 'inactive', 'won', 'lost'],

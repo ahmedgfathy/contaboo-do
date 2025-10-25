@@ -3,8 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\Contact;
+use App\Models\SavedFilter;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Illuminate\Support\Facades\Auth;
 
 class ContactsController extends Controller
 {
@@ -53,9 +55,31 @@ class ContactsController extends Controller
             'total_brokers' => Contact::where('type', 'broker')->count(),
         ];
 
+        // Get saved filters for this module
+        $savedFilters = SavedFilter::accessibleBy(Auth::id())
+            ->where('module', 'contacts')
+            ->orderBy('name')
+            ->get();
+
+        // Available columns for filtering
+        $availableColumns = [
+            ['value' => 'company_name', 'label' => 'Company Name'],
+            ['value' => 'contact_person', 'label' => 'Contact Person'],
+            ['value' => 'email', 'label' => 'Email'],
+            ['value' => 'phone', 'label' => 'Phone'],
+            ['value' => 'mobile', 'label' => 'Mobile'],
+            ['value' => 'type', 'label' => 'Type'],
+            ['value' => 'status', 'label' => 'Status'],
+            ['value' => 'city', 'label' => 'City'],
+            ['value' => 'country', 'label' => 'Country'],
+            ['value' => 'created_at', 'label' => 'Created Date'],
+        ];
+
         return Inertia::render('Contacts/Index', [
             'contacts' => $contacts,
             'stats' => $stats,
+            'savedFilters' => $savedFilters,
+            'availableColumns' => $availableColumns,
             'filters' => $request->only(['search', 'type', 'status', 'country']),
             'types' => ['client', 'partner', 'vendor', 'other'],
             'statuses' => ['active', 'inactive'],
