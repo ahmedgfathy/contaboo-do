@@ -3,6 +3,12 @@
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UserManagementController;
 use App\Http\Controllers\LeadsController;
+use App\Http\Controllers\PropertiesController;
+use App\Models\Lead;
+use App\Models\LeadAudit;
+use App\Models\Property;
+use App\Models\PropertyAudit;
+use App\Models\User;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -17,7 +23,82 @@ Route::get('/', function () {
 });
 
 Route::get('/dashboard', function () {
-    return Inertia::render('Dashboard');
+    // Get statistics
+    $totalLeads = Lead::count();
+    $totalProperties = Property::count();
+    $totalUsers = User::count();
+    
+    // Leads by status
+    $newLeads = Lead::where('status', 'new')->count();
+    $qualifiedLeads = Lead::where('status', 'qualified')->count();
+    $convertedLeads = Lead::where('status', 'converted')->count();
+    
+    // Properties by status
+    $availableProperties = Property::where('status', 'available')->count();
+    $soldProperties = Property::where('status', 'sold')->count();
+    $rentedProperties = Property::where('status', 'rented')->count();
+    $pendingProperties = Property::where('status', 'pending')->count();
+    
+    // Properties by listing type
+    $propertiesForSale = Property::where('listing_type', 'sale')->count();
+    $propertiesForRent = Property::where('listing_type', 'rent')->count();
+    
+    // Calculate total property value
+    $totalPropertyValue = Property::whereIn('status', ['available', 'pending'])->sum('price');
+    
+    // Recent activities (last 10 from both leads and properties)
+    $leadAudits = LeadAudit::with(['user', 'lead'])
+        ->latest()
+        ->take(5)
+        ->get()
+        ->map(function ($audit) {
+            return [
+                'type' => 'lead',
+                'description' => $audit->description,
+                'user' => $audit->user?->name ?? 'System',
+                'created_at' => $audit->created_at,
+                'entity_name' => $audit->lead?->name ?? 'Lead',
+            ];
+        });
+    
+    $propertyAudits = PropertyAudit::with(['user', 'property'])
+        ->latest()
+        ->take(5)
+        ->get()
+        ->map(function ($audit) {
+            return [
+                'type' => 'property',
+                'description' => $audit->description,
+                'user' => $audit->user?->name ?? 'System',
+                'created_at' => $audit->created_at,
+                'entity_name' => $audit->property?->title ?? 'Property',
+            ];
+        });
+    
+    $recentActivities = $leadAudits
+        ->concat($propertyAudits)
+        ->sortByDesc('created_at')
+        ->take(10)
+        ->values();
+    
+    return Inertia::render('Dashboard', [
+        'stats' => [
+            'totalLeads' => $totalLeads,
+            'totalProperties' => $totalProperties,
+            'totalUsers' => $totalUsers,
+            'newLeads' => $newLeads,
+            'qualifiedLeads' => $qualifiedLeads,
+            'convertedLeads' => $convertedLeads,
+            'availableProperties' => $availableProperties,
+            'soldProperties' => $soldProperties,
+            'rentedProperties' => $rentedProperties,
+            'pendingProperties' => $pendingProperties,
+            'propertiesForSale' => $propertiesForSale,
+            'propertiesForRent' => $propertiesForRent,
+            'totalPropertyValue' => $totalPropertyValue,
+        ],
+        'recentActivities' => $recentActivities,
+    ]);
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
@@ -31,9 +112,9 @@ Route::middleware('auth')->group(function () {
     Route::post('/leads/import', [LeadsController::class, 'import'])->name('leads.import');
     
     // Properties Routes
-    Route::get('/properties', function () {
-        return Inertia::render('Properties/Index');
-    })->name('properties.index');
+    Route::resource('properties', PropertiesController::class);
+    Route::post('/properties/export', [PropertiesController::class, 'export'])->name('properties.export');
+    Route::post('/properties/import', [PropertiesController::class, 'import'])->name('properties.import');
     
     // Opportunities Routes
     Route::get('/opportunities', function () {

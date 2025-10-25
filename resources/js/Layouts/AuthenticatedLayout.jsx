@@ -98,26 +98,26 @@ export default function AuthenticatedLayout({ header, children }) {
             </div>
 
             <div className="lg:pl-64">
-                <div className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b border-gray-200 bg-white px-4 shadow-sm sm:gap-x-6 sm:px-6 lg:px-8 dark:border-gray-800 dark:bg-gray-950">
-                    <button type="button" className="-m-2.5 p-2.5 text-gray-700 lg:hidden dark:text-gray-300" onClick={() => setSidebarOpen(true)}>
+                <div className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b bg-white px-4 shadow-sm sm:gap-x-6 sm:px-6 lg:px-8 border-gray-200 lg:bg-black lg:border-gray-800">
+                    <button type="button" className="-m-2.5 p-2.5 text-gray-700 lg:hidden" onClick={() => setSidebarOpen(true)}>
                         <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
                         </svg>
                     </button>
 
-                    <div className="h-6 w-px bg-gray-200 lg:hidden dark:bg-gray-800"></div>
+                    <div className="h-6 w-px bg-gray-200 lg:hidden lg:bg-gray-700"></div>
 
                     <div className="flex flex-1 gap-x-4 self-stretch lg:gap-x-6">
                         <div className="flex flex-1 items-center">
-                            {header && <h1 className="text-xl font-semibold text-gray-900 dark:text-white">{header}</h1>}
+                            {header && <h1 className="text-xl font-semibold text-gray-900 lg:text-white">{header}</h1>}
                         </div>
                         <div className="flex items-center gap-x-4 lg:gap-x-6">
                             <Dropdown>
                                 <Dropdown.Trigger>
-                                    <button className="flex items-center gap-x-3 text-sm font-semibold text-gray-900 hover:text-gray-700 dark:text-white dark:hover:text-gray-300">
+                                    <button className="flex items-center gap-x-3 text-sm font-semibold text-gray-900 hover:text-gray-700 lg:text-white lg:hover:text-gray-300">
                                         <span className="hidden lg:flex lg:items-center">
                                             <span className="text-sm font-semibold leading-6">{user.name}</span>
-                                            <svg className="ml-2 h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+                                            <svg className="ml-2 h-5 w-5 text-gray-400 lg:text-gray-300" viewBox="0 0 20 20" fill="currentColor">
                                                 <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clipRule="evenodd" />
                                             </svg>
                                         </span>
