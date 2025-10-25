@@ -132,6 +132,8 @@ Route::middleware('auth')->group(function () {
     // Contacts Routes
     Route::resource('contacts', ContactsController::class);
     Route::post('/contacts/export', [ContactsController::class, 'export'])->name('contacts.export');
+    Route::get('/api/contacts/search-by-phone', [ContactsController::class, 'searchByPhone'])->name('contacts.searchByPhone');
+    Route::post('/api/contacts/quick-create', [ContactsController::class, 'quickCreate'])->name('contacts.quickCreate');
     
     // Reports Routes
     Route::get('/reports', function () {

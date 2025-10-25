@@ -82,9 +82,18 @@ class PropertiesController extends Controller
 
         $users = User::select('id', 'name')->get();
 
+        // Calculate statistics
+        $stats = [
+            'total_properties' => Property::count(),
+            'for_sale' => Property::where('listing_type', 'sale')->count(),
+            'for_rent' => Property::where('listing_type', 'rent')->count(),
+            'sold' => Property::where('status', 'sold')->count(),
+        ];
+
         return Inertia::render('Properties/Index', [
             'properties' => $properties,
             'users' => $users,
+            'stats' => $stats,
             'filters' => $request->only(['search', 'type', 'status', 'listing_type', 'assigned_to', 'price_min', 'price_max', 'bedrooms', 'date_from', 'date_to']),
             'types' => ['apartment', 'house', 'villa', 'townhouse', 'studio', 'penthouse', 'duplex', 'land', 'commercial', 'office'],
             'statuses' => ['available', 'sold', 'rented', 'pending', 'off_market'],
@@ -132,6 +141,7 @@ class PropertiesController extends Controller
             'longitude' => 'nullable|numeric|between:-180,180',
             'reference_number' => 'nullable|string|unique:properties,reference_number',
             'notes' => 'nullable|string',
+            'owner_id' => 'nullable|exists:contacts,id',
             'assigned_to' => 'nullable|exists:users,id',
         ]);
 
@@ -155,7 +165,7 @@ class PropertiesController extends Controller
 
     public function show(Property $property)
     {
-        $property->load(['assignedTo', 'createdBy', 'updatedBy', 'audits.user']);
+        $property->load(['owner', 'assignedTo', 'createdBy', 'updatedBy', 'audits.user']);
         
         return Inertia::render('Properties/Show', [
             'property' => $property,
@@ -204,6 +214,7 @@ class PropertiesController extends Controller
             'longitude' => 'nullable|numeric|between:-180,180',
             'reference_number' => ['nullable', 'string', Rule::unique('properties')->ignore($property->id)],
             'notes' => 'nullable|string',
+            'owner_id' => 'nullable|exists:contacts,id',
             'assigned_to' => 'nullable|exists:users,id',
         ]);
 

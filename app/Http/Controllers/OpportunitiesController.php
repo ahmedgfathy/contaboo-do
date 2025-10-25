@@ -87,9 +87,18 @@ class OpportunitiesController extends Controller
 
         $users = User::select('id', 'name')->get();
 
+        // Calculate statistics
+        $stats = [
+            'total_opportunities' => Opportunity::count(),
+            'active_opportunities' => Opportunity::where('status', 'active')->count(),
+            'won_opportunities' => Opportunity::where('status', 'won')->count(),
+            'lost_opportunities' => Opportunity::where('status', 'lost')->count(),
+        ];
+
         return Inertia::render('Opportunities/Index', [
             'opportunities' => $opportunities,
             'users' => $users,
+            'stats' => $stats,
             'filters' => $request->only(['search', 'stage', 'status', 'type', 'assigned_to', 'value_min', 'value_max', 'probability_min', 'probability_max', 'date_from', 'date_to']),
             'stages' => ['qualification', 'viewing', 'negotiation', 'proposal', 'contract', 'closed_won', 'closed_lost'],
             'statuses' => ['active', 'inactive', 'won', 'lost'],
@@ -97,10 +106,10 @@ class OpportunitiesController extends Controller
         ]);
     }
 
-    public function create()
+    public function create(Request $request)
     {
         $users = User::select('id', 'name')->get();
-        $leads = Lead::select('id', 'name', 'email', 'phone')->get();
+        $leads = Lead::select('id', 'first_name', 'last_name', 'email', 'phone')->get();
         $properties = Property::select('id', 'title', 'type', 'price', 'status')->get();
         
         return Inertia::render('Opportunities/Create', [
@@ -110,6 +119,8 @@ class OpportunitiesController extends Controller
             'stages' => ['qualification', 'viewing', 'negotiation', 'proposal', 'contract', 'closed_won', 'closed_lost'],
             'statuses' => ['active', 'inactive', 'won', 'lost'],
             'types' => ['sale', 'rent', 'lease'],
+            'preselected_lead_id' => $request->query('lead_id'),
+            'preselected_property_id' => $request->query('property_id'),
         ]);
     }
 

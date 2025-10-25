@@ -45,8 +45,17 @@ class ContactsController extends Controller
 
         $contacts = $query->paginate(15)->withQueryString();
 
+        // Calculate statistics
+        $stats = [
+            'total_clients' => Contact::where('type', 'client')->count(),
+            'total_partners' => Contact::where('type', 'partner')->count(),
+            'total_agents' => Contact::where('type', 'agent')->count(),
+            'total_brokers' => Contact::where('type', 'broker')->count(),
+        ];
+
         return Inertia::render('Contacts/Index', [
             'contacts' => $contacts,
+            'stats' => $stats,
             'filters' => $request->only(['search', 'type', 'status', 'country']),
             'types' => ['client', 'partner', 'vendor', 'other'],
             'statuses' => ['active', 'inactive'],
@@ -188,5 +197,41 @@ class ContactsController extends Controller
             'Content-Type' => 'text/csv',
             'Content-Disposition' => 'attachment; filename="contacts.csv"',
         ]);
+    }
+
+    public function searchByPhone(Request $request)
+    {
+        $phone = $request->get('phone');
+        
+        if (strlen($phone) < 3) {
+            return response()->json([]);
+        }
+
+        $contacts = Contact::where('phone', 'like', "%{$phone}%")
+            ->orWhere('mobile', 'like', "%{$phone}%")
+            ->select('id', 'company_name', 'contact_person', 'phone', 'mobile', 'type')
+            ->limit(10)
+            ->get();
+
+        return response()->json($contacts);
+    }
+
+    public function quickCreate(Request $request)
+    {
+        $validated = $request->validate([
+            'company_name' => 'required|string|max:255',
+            'contact_person' => 'required|string|max:255',
+            'phone' => 'required|string|max:20',
+            'mobile' => 'nullable|string|max:20',
+            'type' => 'required|in:owner,agent,broker,other',
+        ]);
+
+        $validated['status'] = 'active';
+        $validated['created_by'] = auth()->id();
+        $validated['updated_by'] = auth()->id();
+
+        $contact = Contact::create($validated);
+
+        return response()->json($contact);
     }
 }

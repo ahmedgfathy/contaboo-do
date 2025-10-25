@@ -65,9 +65,18 @@ class LeadsController extends Controller
 
         $users = User::select('id', 'name')->get();
 
+        // Calculate statistics
+        $stats = [
+            'total_leads' => Lead::count(),
+            'new_leads' => Lead::where('status', 'new')->count(),
+            'contacted_leads' => Lead::where('status', 'contacted')->count(),
+            'qualified_leads' => Lead::where('status', 'qualified')->count(),
+        ];
+
         return Inertia::render('Leads/Index', [
             'leads' => $leads,
             'users' => $users,
+            'stats' => $stats,
             'filters' => $request->only(['search', 'status', 'source', 'assigned_to', 'date_from', 'date_to']),
             'statuses' => ['new', 'contacted', 'qualified', 'proposal', 'negotiation', 'won', 'lost'],
             'sources' => ['website', 'referral', 'social_media', 'email_campaign', 'cold_call', 'trade_show', 'partner', 'other'],

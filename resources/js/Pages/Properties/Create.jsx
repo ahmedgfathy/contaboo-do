@@ -1,6 +1,7 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { useState } from 'react';
+import OwnerSelector from '@/Components/OwnerSelector';
 
 export default function CreateProperty({ users, types, statuses, listing_types }) {
     const { data, setData, post, processing, errors } = useForm({
@@ -29,6 +30,7 @@ export default function CreateProperty({ users, types, statuses, listing_types }
         longitude: '',
         reference_number: '',
         notes: '',
+        owner_id: '',
         assigned_to: '',
     });
 
@@ -227,6 +229,14 @@ export default function CreateProperty({ users, types, statuses, listing_types }
                                     placeholder="0.00"
                                 />
                                 {errors.area && <p className="mt-1 text-sm text-red-600">{errors.area}</p>}
+                            </div>
+
+                            <div>
+                                <OwnerSelector
+                                    value={data.owner_id}
+                                    onChange={(ownerId) => setData('owner_id', ownerId)}
+                                    error={errors.owner_id}
+                                />
                             </div>
 
                             <div>

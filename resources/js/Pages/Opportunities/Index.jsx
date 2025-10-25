@@ -2,31 +2,15 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, router, useForm } from '@inertiajs/react';
 import { useState, useEffect } from 'react';
 
-export default function OpportunitiesIndex({ opportunities, users, filters, stages, statuses, types }) {
+export default function OpportunitiesIndex({ opportunities, users, filters, stages, statuses, types, stats }) {
     const [showFilters, setShowFilters] = useState(false);
     const [importFile, setImportFile] = useState(null);
     const [showImportModal, setShowImportModal] = useState(false);
-    // Load view preference from localStorage, default to 'list'
-    const [viewMode, setViewMode] = useState(() => {
-        if (typeof window !== 'undefined') {
-            return localStorage.getItem('opportunitiesViewMode') || 'list';
-        }
-        return 'list';
-    });
-
-    // Save view preference when it changes
-    const handleViewModeChange = (mode) => {
-        setViewMode(mode);
-        if (typeof window !== 'undefined') {
-            localStorage.setItem('opportunitiesViewMode', mode);
-        }
-    };
 
     const searchForm = useForm({
         search: filters.search || '',
         type: filters.type || '',
         status: filters.status || '',
-        type: filters.type || '',
         assigned_to: filters.assigned_to || '',
         value_min: filters.value_min || '',
         value_max: filters.value_max || '',
@@ -122,6 +106,95 @@ export default function OpportunitiesIndex({ opportunities, users, filters, stag
             <Head title="Opportunities" />
 
             <div className="space-y-6">
+                {/* Statistics Cards */}
+                {stats && (
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                        {/* Total Opportunities Card */}
+                        <div className="overflow-hidden rounded-lg bg-white shadow dark:bg-gray-800">
+                            <div className="p-5">
+                                <div className="flex items-center">
+                                    <div className="flex-shrink-0">
+                                        <div className="flex h-12 w-12 items-center justify-center rounded-md bg-indigo-500">
+                                            <svg className="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                                            </svg>
+                                        </div>
+                                    </div>
+                                    <div className="ml-5 w-0 flex-1">
+                                        <dl>
+                                            <dt className="truncate text-sm font-medium text-gray-500 dark:text-gray-400">Total Opportunities</dt>
+                                            <dd className="text-3xl font-semibold text-gray-900 dark:text-white">{stats.total_opportunities}</dd>
+                                        </dl>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Active Opportunities Card */}
+                        <div className="overflow-hidden rounded-lg bg-white shadow dark:bg-gray-800">
+                            <div className="p-5">
+                                <div className="flex items-center">
+                                    <div className="flex-shrink-0">
+                                        <div className="flex h-12 w-12 items-center justify-center rounded-md bg-blue-500">
+                                            <svg className="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                            </svg>
+                                        </div>
+                                    </div>
+                                    <div className="ml-5 w-0 flex-1">
+                                        <dl>
+                                            <dt className="truncate text-sm font-medium text-gray-500 dark:text-gray-400">Active</dt>
+                                            <dd className="text-3xl font-semibold text-gray-900 dark:text-white">{stats.active_opportunities}</dd>
+                                        </dl>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Won Opportunities Card */}
+                        <div className="overflow-hidden rounded-lg bg-white shadow dark:bg-gray-800">
+                            <div className="p-5">
+                                <div className="flex items-center">
+                                    <div className="flex-shrink-0">
+                                        <div className="flex h-12 w-12 items-center justify-center rounded-md bg-green-500">
+                                            <svg className="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            </svg>
+                                        </div>
+                                    </div>
+                                    <div className="ml-5 w-0 flex-1">
+                                        <dl>
+                                            <dt className="truncate text-sm font-medium text-gray-500 dark:text-gray-400">Won</dt>
+                                            <dd className="text-3xl font-semibold text-gray-900 dark:text-white">{stats.won_opportunities}</dd>
+                                        </dl>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Lost Opportunities Card */}
+                        <div className="overflow-hidden rounded-lg bg-white shadow dark:bg-gray-800">
+                            <div className="p-5">
+                                <div className="flex items-center">
+                                    <div className="flex-shrink-0">
+                                        <div className="flex h-12 w-12 items-center justify-center rounded-md bg-red-500">
+                                            <svg className="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            </svg>
+                                        </div>
+                                    </div>
+                                    <div className="ml-5 w-0 flex-1">
+                                        <dl>
+                                            <dt className="truncate text-sm font-medium text-gray-500 dark:text-gray-400">Lost</dt>
+                                            <dd className="text-3xl font-semibold text-gray-900 dark:text-white">{stats.lost_opportunities}</dd>
+                                        </dl>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
                 {/* Header Actions */}
                 <div className="flex flex-wrap items-center justify-between gap-4">
                     <div className="flex items-center gap-4">
@@ -132,7 +205,7 @@ export default function OpportunitiesIndex({ opportunities, users, filters, stag
                             <svg className="mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                             </svg>
-                            Add New Property
+                            Add New Opportunity
                         </Link>
                         <button
                             onClick={() => setShowImportModal(true)}
@@ -151,36 +224,6 @@ export default function OpportunitiesIndex({ opportunities, users, filters, stag
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                             </svg>
                             Export
-                        </button>
-                    </div>
-
-                    {/* View Toggle */}
-                    <div className="flex items-center gap-2 rounded-lg border border-gray-300 p-1 dark:border-gray-600">
-                        <button
-                            onClick={() => handleViewModeChange('list')}
-                            className={`inline-flex items-center rounded px-3 py-1.5 text-sm font-medium transition ${
-                                viewMode === 'list'
-                                    ? 'bg-indigo-600 text-white'
-                                    : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700'
-                            }`}
-                        >
-                            <svg className="mr-1.5 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
-                            </svg>
-                            List
-                        </button>
-                        <button
-                            onClick={() => handleViewModeChange('card')}
-                            className={`inline-flex items-center rounded px-3 py-1.5 text-sm font-medium transition ${
-                                viewMode === 'card'
-                                    ? 'bg-indigo-600 text-white'
-                                    : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700'
-                            }`}
-                        >
-                            <svg className="mr-1.5 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
-                            </svg>
-                            Cards
                         </button>
                     </div>
                 </div>
@@ -354,10 +397,10 @@ export default function OpportunitiesIndex({ opportunities, users, filters, stag
                     </div>
                 </div>
 
-                {/* Opportunities List/Card View */}
-                {viewMode === 'list' ? (
+                {/* Opportunities List View */}
+                <div className="space-y-6">
                     <div className="overflow-hidden rounded-lg bg-white shadow dark:bg-gray-800">
-                    <div className="overflow-x-auto">
+                        <div className="overflow-x-auto">
                         <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                             <thead className="bg-gray-50 dark:bg-gray-900">
                                 <tr>
@@ -448,20 +491,30 @@ export default function OpportunitiesIndex({ opportunities, users, filters, stag
                                                     <Link
                                                         href={route('opportunities.show', opportunity.id)}
                                                         className="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300"
+                                                        title="View"
                                                     >
-                                                        View
+                                                        <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                                        </svg>
                                                     </Link>
                                                     <Link
                                                         href={route('opportunities.edit', opportunity.id)}
                                                         className="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300"
+                                                        title="Edit"
                                                     >
-                                                        Edit
+                                                        <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                                        </svg>
                                                     </Link>
                                                     <button
                                                         onClick={() => handleDelete(opportunity.id)}
                                                         className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
+                                                        title="Delete"
                                                     >
-                                                        Delete
+                                                        <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                        </svg>
                                                     </button>
                                                 </div>
                                             </td>
@@ -471,172 +524,7 @@ export default function OpportunitiesIndex({ opportunities, users, filters, stag
                             </tbody>
                         </table>
                     </div>
-
-                    {/* Pagination */}
-                    {opportunities.links.length > 3 && (
-                        <div className="flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 dark:border-gray-700 dark:bg-gray-800 sm:px-6">
-                            <div className="flex flex-1 justify-between sm:hidden">
-                                {opportunities.prev_page_url && (
-                                    <Link
-                                        href={opportunities.prev_page_url}
-                                        className="relative inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
-                                    >
-                                        Previous
-                                    </Link>
-                                )}
-                                {opportunities.next_page_url && (
-                                    <Link
-                                        href={opportunities.next_page_url}
-                                        className="relative ml-3 inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
-                                    >
-                                        Next
-                                    </Link>
-                                )}
-                            </div>
-                            <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
-                                <div>
-                                    <p className="text-sm text-gray-700 dark:text-gray-300">
-                                        Showing <span className="font-medium">{opportunities.from}</span> to <span className="font-medium">{opportunities.to}</span> of{' '}
-                                        <span className="font-medium">{opportunities.total}</span> results
-                                    </p>
-                                </div>
-                                <div>
-                                    <nav className="isolate inline-flex -space-x-px rounded-md shadow-sm">
-                                        {opportunities.links.map((link, index) => (
-                                            <Link
-                                                key={index}
-                                                href={link.url || '#'}
-                                                className={`relative inline-flex items-center px-4 py-2 text-sm font-medium ${
-                                                    link.active
-                                                        ? 'z-10 bg-indigo-600 text-white'
-                                                        : 'bg-white text-gray-700 hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700'
-                                                } ${index === 0 ? 'rounded-l-md' : ''} ${
-                                                    index === opportunities.links.length - 1 ? 'rounded-r-md' : ''
-                                                } border border-gray-300 dark:border-gray-600`}
-                                                dangerouslySetInnerHTML={{ __html: link.label }}
-                                            />
-                                        ))}
-                                    </nav>
-                                </div>
-                            </div>
-                        </div>
-                    )}
                 </div>
-                ) : (
-                    /* Card View */
-                    <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-                        {opportunities.data.length === 0 ? (
-                            <div className="col-span-full text-center py-12">
-                                <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                                </svg>
-                                <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">No opportunities found. Create your first opportunity!</p>
-                            </div>
-                        ) : (
-                            opportunities.data.map((opportunity) => (
-                                <div key={opportunity.id} className="overflow-hidden rounded-lg bg-white shadow transition hover:shadow-lg dark:bg-gray-800">
-                                    {/* Property Image */}
-                                    <div className="relative h-48 bg-gray-200 dark:bg-gray-700">
-                                        {opportunity.images && opportunity.images.length > 0 ? (
-                                            <img
-                                                src={`/storage/${opportunity.images[0]}`}
-                                                alt={opportunity.title}
-                                                className="h-full w-full object-cover"
-                                            />
-                                        ) : (
-                                            <div className="flex h-full items-center justify-center">
-                                                <svg className="h-16 w-16 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                                                </svg>
-                                            </div>
-                                        )}
-                                        <div className="absolute top-3 right-3 flex gap-2">
-                                            <span className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${getStatusColor(opportunity.status)}`}>
-                                                {opportunity.status.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
-                                            </span>
-                                            <span className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${getListingTypeColor(opportunity.type)}`}>
-                                                {opportunity.type.charAt(0).toUpperCase() + opportunity.type.slice(1)}
-                                            </span>
-                                        </div>
-                                    </div>
-
-                                    {/* Property Details */}
-                                    <div className="p-5">
-                                        <div className="mb-2">
-                                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                                                {opportunity.title}
-                                            </h3>
-                                            {opportunity.reference_number && (
-                                                <p className="text-sm text-gray-500 dark:text-gray-400">
-                                                    Ref: {opportunity.reference_number}
-                                                </p>
-                                            )}
-                                        </div>
-
-                                        <div className="mb-3 flex items-center text-sm text-gray-500 dark:text-gray-400">
-                                            <svg className="mr-1.5 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                                            </svg>
-                                            {opportunity.city}, {opportunity.country}
-                                        </div>
-
-                                        <div className="mb-3 flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
-                                            {opportunity.bedrooms && (
-                                                <span className="flex items-center">
-                                                    <svg className="mr-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                                                    </svg>
-                                                    {opportunity.bedrooms} bed
-                                                </span>
-                                            )}
-                                            {opportunity.bathrooms && (
-                                                <span className="flex items-center">
-                                                    <svg className="mr-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                                    </svg>
-                                                    {opportunity.bathrooms} bath
-                                                </span>
-                                            )}
-                                            {opportunity.area && (
-                                                <span className="flex items-center">
-                                                    <svg className="mr-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
-                                                    </svg>
-                                                    {opportunity.area} m²
-                                                </span>
-                                            )}
-                                        </div>
-
-                                        <div className="mb-4 border-t border-gray-200 pt-3 dark:border-gray-700">
-                                            <div className="flex items-center justify-between">
-                                                <span className="text-sm text-gray-500 dark:text-gray-400">Price</span>
-                                                <span className="text-xl font-bold text-gray-900 dark:text-white">
-                                                    ${parseFloat(opportunity.value).toLocaleString()}
-                                                </span>
-                                            </div>
-                                        </div>
-
-                                        <div className="flex gap-2">
-                                            <Link
-                                                href={route('opportunities.show', opportunity.id)}
-                                                className="flex-1 rounded-lg bg-indigo-600 py-2 text-center text-sm font-semibold text-white hover:bg-indigo-700"
-                                            >
-                                                View Details
-                                            </Link>
-                                            <Link
-                                                href={route('opportunities.edit', opportunity.id)}
-                                                className="flex-1 rounded-lg border border-gray-300 py-2 text-center text-sm font-semibold text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
-                                            >
-                                                Edit
-                                            </Link>
-                                        </div>
-                                    </div>
-                                </div>
-                            ))
-                        )}
-                    </div>
-                )}
 
                 {/* Pagination */}
                 {opportunities.links.length > 3 && (
@@ -687,7 +575,7 @@ export default function OpportunitiesIndex({ opportunities, users, filters, stag
                         </div>
                     </div>
                 )}
-            </div>
+                </div>
 
             {/* Import Modal */}
             {showImportModal && (
@@ -731,6 +619,7 @@ export default function OpportunitiesIndex({ opportunities, users, filters, stag
                     </div>
                 </div>
             )}
+            </div>
         </AuthenticatedLayout>
     );
 }

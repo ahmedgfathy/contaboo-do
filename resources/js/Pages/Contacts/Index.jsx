@@ -2,31 +2,15 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, router, useForm } from '@inertiajs/react';
 import { useState, useEffect } from 'react';
 
-export default function ContactsIndex({ contacts, types, statuses, filters }) {
+export default function ContactsIndex({ contacts, types, statuses, filters, stats }) {
     const [showFilters, setShowFilters] = useState(false);
     const [importFile, setImportFile] = useState(null);
     const [showImportModal, setShowImportModal] = useState(false);
-    // Load view preference from localStorage, default to 'list'
-    const [viewMode, setViewMode] = useState(() => {
-        if (typeof window !== 'undefined') {
-            return localStorage.getItem('contactsViewMode') || 'list';
-        }
-        return 'list';
-    });
-
-    // Save view preference when it changes
-    const handleViewModeChange = (mode) => {
-        setViewMode(mode);
-        if (typeof window !== 'undefined') {
-            localStorage.setItem('contactsViewMode', mode);
-        }
-    };
 
     const searchForm = useForm({
         search: filters.search || '',
         type: filters.type || '',
         status: filters.status || '',
-        type: filters.type || '',
         assigned_to: filters.assigned_to || '',
         value_min: filters.value_min || '',
         value_max: filters.value_max || '',
@@ -122,6 +106,95 @@ export default function ContactsIndex({ contacts, types, statuses, filters }) {
             <Head title="Contacts" />
 
             <div className="space-y-6">
+                {/* Statistics Cards */}
+                {stats && (
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                        {/* Clients Card */}
+                        <div className="overflow-hidden rounded-lg bg-white shadow dark:bg-gray-800">
+                            <div className="p-5">
+                                <div className="flex items-center">
+                                    <div className="flex-shrink-0">
+                                        <div className="flex h-12 w-12 items-center justify-center rounded-md bg-blue-500">
+                                            <svg className="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                                            </svg>
+                                        </div>
+                                    </div>
+                                    <div className="ml-5 w-0 flex-1">
+                                        <dl>
+                                            <dt className="truncate text-sm font-medium text-gray-500 dark:text-gray-400">Total Clients</dt>
+                                            <dd className="text-3xl font-semibold text-gray-900 dark:text-white">{stats.total_clients}</dd>
+                                        </dl>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Partners Card */}
+                        <div className="overflow-hidden rounded-lg bg-white shadow dark:bg-gray-800">
+                            <div className="p-5">
+                                <div className="flex items-center">
+                                    <div className="flex-shrink-0">
+                                        <div className="flex h-12 w-12 items-center justify-center rounded-md bg-green-500">
+                                            <svg className="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                                            </svg>
+                                        </div>
+                                    </div>
+                                    <div className="ml-5 w-0 flex-1">
+                                        <dl>
+                                            <dt className="truncate text-sm font-medium text-gray-500 dark:text-gray-400">Total Partners</dt>
+                                            <dd className="text-3xl font-semibold text-gray-900 dark:text-white">{stats.total_partners}</dd>
+                                        </dl>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Agents Card */}
+                        <div className="overflow-hidden rounded-lg bg-white shadow dark:bg-gray-800">
+                            <div className="p-5">
+                                <div className="flex items-center">
+                                    <div className="flex-shrink-0">
+                                        <div className="flex h-12 w-12 items-center justify-center rounded-md bg-purple-500">
+                                            <svg className="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                            </svg>
+                                        </div>
+                                    </div>
+                                    <div className="ml-5 w-0 flex-1">
+                                        <dl>
+                                            <dt className="truncate text-sm font-medium text-gray-500 dark:text-gray-400">Total Agents</dt>
+                                            <dd className="text-3xl font-semibold text-gray-900 dark:text-white">{stats.total_agents}</dd>
+                                        </dl>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Brokers Card */}
+                        <div className="overflow-hidden rounded-lg bg-white shadow dark:bg-gray-800">
+                            <div className="p-5">
+                                <div className="flex items-center">
+                                    <div className="flex-shrink-0">
+                                        <div className="flex h-12 w-12 items-center justify-center rounded-md bg-orange-500">
+                                            <svg className="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                            </svg>
+                                        </div>
+                                    </div>
+                                    <div className="ml-5 w-0 flex-1">
+                                        <dl>
+                                            <dt className="truncate text-sm font-medium text-gray-500 dark:text-gray-400">Total Brokers</dt>
+                                            <dd className="text-3xl font-semibold text-gray-900 dark:text-white">{stats.total_brokers}</dd>
+                                        </dl>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
                 {/* Header Actions */}
                 <div className="flex flex-wrap items-center justify-between gap-4">
                     <div className="flex items-center gap-4">
@@ -132,7 +205,7 @@ export default function ContactsIndex({ contacts, types, statuses, filters }) {
                             <svg className="mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                             </svg>
-                            Add New Property
+                            Add New Contact
                         </Link>
                         <button
                             onClick={() => setShowImportModal(true)}
@@ -151,36 +224,6 @@ export default function ContactsIndex({ contacts, types, statuses, filters }) {
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                             </svg>
                             Export
-                        </button>
-                    </div>
-
-                    {/* View Toggle */}
-                    <div className="flex items-center gap-2 rounded-lg border border-gray-300 p-1 dark:border-gray-600">
-                        <button
-                            onClick={() => handleViewModeChange('list')}
-                            className={`inline-flex items-center rounded px-3 py-1.5 text-sm font-medium transition ${
-                                viewMode === 'list'
-                                    ? 'bg-indigo-600 text-white'
-                                    : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700'
-                            }`}
-                        >
-                            <svg className="mr-1.5 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
-                            </svg>
-                            List
-                        </button>
-                        <button
-                            onClick={() => handleViewModeChange('card')}
-                            className={`inline-flex items-center rounded px-3 py-1.5 text-sm font-medium transition ${
-                                viewMode === 'card'
-                                    ? 'bg-indigo-600 text-white'
-                                    : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700'
-                            }`}
-                        >
-                            <svg className="mr-1.5 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
-                            </svg>
-                            Cards
                         </button>
                     </div>
                 </div>
@@ -354,10 +397,10 @@ export default function ContactsIndex({ contacts, types, statuses, filters }) {
                     </div>
                 </div>
 
-                {/* Contacts List/Card View */}
-                {viewMode === 'list' ? (
+                {/* Contacts List View */}
+                <div className="space-y-6">
                     <div className="overflow-hidden rounded-lg bg-white shadow dark:bg-gray-800">
-                    <div className="overflow-x-auto">
+                        <div className="overflow-x-auto">
                         <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                             <thead className="bg-gray-50 dark:bg-gray-900">
                                 <tr>
@@ -448,20 +491,30 @@ export default function ContactsIndex({ contacts, types, statuses, filters }) {
                                                     <Link
                                                         href={route('contacts.show', contact.id)}
                                                         className="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300"
+                                                        title="View"
                                                     >
-                                                        View
+                                                        <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                                        </svg>
                                                     </Link>
                                                     <Link
                                                         href={route('contacts.edit', contact.id)}
                                                         className="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300"
+                                                        title="Edit"
                                                     >
-                                                        Edit
+                                                        <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                                        </svg>
                                                     </Link>
                                                     <button
                                                         onClick={() => handleDelete(contact.id)}
                                                         className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
+                                                        title="Delete"
                                                     >
-                                                        Delete
+                                                        <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                        </svg>
                                                     </button>
                                                 </div>
                                             </td>
@@ -471,172 +524,7 @@ export default function ContactsIndex({ contacts, types, statuses, filters }) {
                             </tbody>
                         </table>
                     </div>
-
-                    {/* Pagination */}
-                    {contacts.links.length > 3 && (
-                        <div className="flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 dark:border-gray-700 dark:bg-gray-800 sm:px-6">
-                            <div className="flex flex-1 justify-between sm:hidden">
-                                {contacts.prev_page_url && (
-                                    <Link
-                                        href={contacts.prev_page_url}
-                                        className="relative inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
-                                    >
-                                        Previous
-                                    </Link>
-                                )}
-                                {contacts.next_page_url && (
-                                    <Link
-                                        href={contacts.next_page_url}
-                                        className="relative ml-3 inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
-                                    >
-                                        Next
-                                    </Link>
-                                )}
-                            </div>
-                            <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
-                                <div>
-                                    <p className="text-sm text-gray-700 dark:text-gray-300">
-                                        Showing <span className="font-medium">{contacts.from}</span> to <span className="font-medium">{contacts.to}</span> of{' '}
-                                        <span className="font-medium">{contacts.total}</span> results
-                                    </p>
-                                </div>
-                                <div>
-                                    <nav className="isolate inline-flex -space-x-px rounded-md shadow-sm">
-                                        {contacts.links.map((link, index) => (
-                                            <Link
-                                                key={index}
-                                                href={link.url || '#'}
-                                                className={`relative inline-flex items-center px-4 py-2 text-sm font-medium ${
-                                                    link.active
-                                                        ? 'z-10 bg-indigo-600 text-white'
-                                                        : 'bg-white text-gray-700 hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700'
-                                                } ${index === 0 ? 'rounded-l-md' : ''} ${
-                                                    index === contacts.links.length - 1 ? 'rounded-r-md' : ''
-                                                } border border-gray-300 dark:border-gray-600`}
-                                                dangerouslySetInnerHTML={{ __html: link.label }}
-                                            />
-                                        ))}
-                                    </nav>
-                                </div>
-                            </div>
-                        </div>
-                    )}
                 </div>
-                ) : (
-                    /* Card View */
-                    <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-                        {contacts.data.length === 0 ? (
-                            <div className="col-span-full text-center py-12">
-                                <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                                </svg>
-                                <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">No contacts found. Create your first contact!</p>
-                            </div>
-                        ) : (
-                            contacts.data.map((contact) => (
-                                <div key={contact.id} className="overflow-hidden rounded-lg bg-white shadow transition hover:shadow-lg dark:bg-gray-800">
-                                    {/* Property Image */}
-                                    <div className="relative h-48 bg-gray-200 dark:bg-gray-700">
-                                        {contact.images && contact.images.length > 0 ? (
-                                            <img
-                                                src={`/storage/${contact.images[0]}`}
-                                                alt={contact.title}
-                                                className="h-full w-full object-cover"
-                                            />
-                                        ) : (
-                                            <div className="flex h-full items-center justify-center">
-                                                <svg className="h-16 w-16 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                                                </svg>
-                                            </div>
-                                        )}
-                                        <div className="absolute top-3 right-3 flex gap-2">
-                                            <span className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${getStatusColor(contact.status)}`}>
-                                                {contact.status.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
-                                            </span>
-                                            <span className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${getListingTypeColor(contact.type)}`}>
-                                                {contact.type.charAt(0).toUpperCase() + contact.type.slice(1)}
-                                            </span>
-                                        </div>
-                                    </div>
-
-                                    {/* Property Details */}
-                                    <div className="p-5">
-                                        <div className="mb-2">
-                                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                                                {contact.title}
-                                            </h3>
-                                            {contact.reference_number && (
-                                                <p className="text-sm text-gray-500 dark:text-gray-400">
-                                                    Ref: {contact.reference_number}
-                                                </p>
-                                            )}
-                                        </div>
-
-                                        <div className="mb-3 flex items-center text-sm text-gray-500 dark:text-gray-400">
-                                            <svg className="mr-1.5 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                                            </svg>
-                                            {contact.city}, {contact.country}
-                                        </div>
-
-                                        <div className="mb-3 flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
-                                            {contact.bedrooms && (
-                                                <span className="flex items-center">
-                                                    <svg className="mr-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                                                    </svg>
-                                                    {contact.bedrooms} bed
-                                                </span>
-                                            )}
-                                            {contact.bathrooms && (
-                                                <span className="flex items-center">
-                                                    <svg className="mr-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                                    </svg>
-                                                    {contact.bathrooms} bath
-                                                </span>
-                                            )}
-                                            {contact.area && (
-                                                <span className="flex items-center">
-                                                    <svg className="mr-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
-                                                    </svg>
-                                                    {contact.area} m²
-                                                </span>
-                                            )}
-                                        </div>
-
-                                        <div className="mb-4 border-t border-gray-200 pt-3 dark:border-gray-700">
-                                            <div className="flex items-center justify-between">
-                                                <span className="text-sm text-gray-500 dark:text-gray-400">Price</span>
-                                                <span className="text-xl font-bold text-gray-900 dark:text-white">
-                                                    ${parseFloat(contact.value).toLocaleString()}
-                                                </span>
-                                            </div>
-                                        </div>
-
-                                        <div className="flex gap-2">
-                                            <Link
-                                                href={route('contacts.show', contact.id)}
-                                                className="flex-1 rounded-lg bg-indigo-600 py-2 text-center text-sm font-semibold text-white hover:bg-indigo-700"
-                                            >
-                                                View Details
-                                            </Link>
-                                            <Link
-                                                href={route('contacts.edit', contact.id)}
-                                                className="flex-1 rounded-lg border border-gray-300 py-2 text-center text-sm font-semibold text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
-                                            >
-                                                Edit
-                                            </Link>
-                                        </div>
-                                    </div>
-                                </div>
-                            ))
-                        )}
-                    </div>
-                )}
 
                 {/* Pagination */}
                 {contacts.links.length > 3 && (
@@ -687,7 +575,7 @@ export default function ContactsIndex({ contacts, types, statuses, filters }) {
                         </div>
                     </div>
                 )}
-            </div>
+                </div>
 
             {/* Import Modal */}
             {showImportModal && (
@@ -731,6 +619,7 @@ export default function ContactsIndex({ contacts, types, statuses, filters }) {
                     </div>
                 </div>
             )}
+            </div>
         </AuthenticatedLayout>
     );
 }
