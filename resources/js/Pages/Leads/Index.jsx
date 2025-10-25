@@ -665,6 +665,7 @@ export default function LeadsIndex({ leads, users, filters, statuses, sources, s
                 users={users}
                 availableColumns={availableColumns}
                 editingFilter={editingFilter}
+                module="leads"
             />
         </AuthenticatedLayout>
     );

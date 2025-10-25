@@ -1,7 +1,30 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link } from '@inertiajs/react';
+import { useState } from 'react';
 
 export default function ShowProperty({ property }) {
+    const [currentImageIndex, setCurrentImageIndex] = useState(0);
+    const [isFullscreen, setIsFullscreen] = useState(false);
+    
+    const images = property.images || [];
+
+    const nextImage = () => {
+        setCurrentImageIndex((prev) => (prev + 1) % images.length);
+    };
+
+    const prevImage = () => {
+        setCurrentImageIndex((prev) => (prev - 1 + images.length) % images.length);
+    };
+
+    const openFullscreen = (index) => {
+        setCurrentImageIndex(index);
+        setIsFullscreen(true);
+    };
+
+    const closeFullscreen = () => {
+        setIsFullscreen(false);
+    };
+
     const formatDate = (dateString) => {
         const date = new Date(dateString);
         return date.toLocaleDateString('en-US', { 
@@ -83,6 +106,84 @@ export default function ShowProperty({ property }) {
                 <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
                     {/* Main Content */}
                     <div className="space-y-6 lg:col-span-2">
+                        {/* Image Slider */}
+                        {images.length > 0 && (
+                            <div className="rounded-lg bg-white p-6 shadow dark:bg-gray-800">
+                                <h3 className="mb-4 text-lg font-semibold text-gray-900 dark:text-white">Property Images</h3>
+                                
+                                {/* Main Image Slider */}
+                                <div className="relative mb-4 aspect-video overflow-hidden rounded-lg bg-gray-100 dark:bg-gray-700">
+                                    <img
+                                        src={images[currentImageIndex]}
+                                        alt={`Property ${currentImageIndex + 1}`}
+                                        className="h-full w-full object-cover cursor-pointer"
+                                        onClick={() => openFullscreen(currentImageIndex)}
+                                    />
+                                    
+                                    {/* Navigation Arrows */}
+                                    {images.length > 1 && (
+                                        <>
+                                            <button
+                                                onClick={prevImage}
+                                                className="absolute left-2 top-1/2 -translate-y-1/2 rounded-full bg-black/50 p-2 text-white hover:bg-black/70 transition"
+                                            >
+                                                <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                                                </svg>
+                                            </button>
+                                            <button
+                                                onClick={nextImage}
+                                                className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full bg-black/50 p-2 text-white hover:bg-black/70 transition"
+                                            >
+                                                <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                                </svg>
+                                            </button>
+                                        </>
+                                    )}
+                                    
+                                    {/* Fullscreen Button */}
+                                    <button
+                                        onClick={() => openFullscreen(currentImageIndex)}
+                                        className="absolute bottom-2 right-2 rounded-full bg-black/50 p-2 text-white hover:bg-black/70 transition"
+                                        title="View Fullscreen"
+                                    >
+                                        <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+                                        </svg>
+                                    </button>
+                                    
+                                    {/* Image Counter */}
+                                    <div className="absolute bottom-2 left-2 rounded-full bg-black/50 px-3 py-1 text-sm text-white">
+                                        {currentImageIndex + 1} / {images.length}
+                                    </div>
+                                </div>
+                                
+                                {/* Thumbnail Strip */}
+                                {images.length > 1 && (
+                                    <div className="flex gap-2 overflow-x-auto pb-2">
+                                        {images.map((image, index) => (
+                                            <button
+                                                key={index}
+                                                onClick={() => setCurrentImageIndex(index)}
+                                                className={`flex-shrink-0 overflow-hidden rounded-lg transition ${
+                                                    index === currentImageIndex
+                                                        ? 'ring-2 ring-indigo-600 dark:ring-indigo-400'
+                                                        : 'opacity-60 hover:opacity-100'
+                                                }`}
+                                            >
+                                                <img
+                                                    src={image}
+                                                    alt={`Thumbnail ${index + 1}`}
+                                                    className="h-20 w-28 object-cover"
+                                                />
+                                            </button>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
                         {/* Basic Information */}
                         <div className="rounded-lg bg-white p-6 shadow dark:bg-gray-800">
                             <div className="mb-4 flex items-start justify-between">
@@ -344,6 +445,80 @@ export default function ShowProperty({ property }) {
                     </div>
                 </div>
             </div>
+
+            {/* Fullscreen Modal */}
+            {isFullscreen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black">
+                    {/* Close Button */}
+                    <button
+                        onClick={closeFullscreen}
+                        className="absolute right-4 top-4 z-10 rounded-full bg-black/50 p-2 text-white hover:bg-black/70 transition"
+                    >
+                        <svg className="h-8 w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                    
+                    {/* Image */}
+                    <div className="relative h-full w-full flex items-center justify-center p-4">
+                        <img
+                            src={images[currentImageIndex]}
+                            alt={`Property ${currentImageIndex + 1}`}
+                            className="max-h-full max-w-full object-contain"
+                        />
+                        
+                        {/* Navigation Arrows */}
+                        {images.length > 1 && (
+                            <>
+                                <button
+                                    onClick={prevImage}
+                                    className="absolute left-4 rounded-full bg-black/50 p-3 text-white hover:bg-black/70 transition"
+                                >
+                                    <svg className="h-8 w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                                    </svg>
+                                </button>
+                                <button
+                                    onClick={nextImage}
+                                    className="absolute right-4 rounded-full bg-black/50 p-3 text-white hover:bg-black/70 transition"
+                                >
+                                    <svg className="h-8 w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                    </svg>
+                                </button>
+                            </>
+                        )}
+                        
+                        {/* Image Counter */}
+                        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 rounded-full bg-black/50 px-4 py-2 text-white">
+                            {currentImageIndex + 1} / {images.length}
+                        </div>
+                    </div>
+                    
+                    {/* Thumbnail Strip */}
+                    {images.length > 1 && (
+                        <div className="absolute bottom-20 left-1/2 -translate-x-1/2 flex gap-2 overflow-x-auto max-w-4xl px-4">
+                            {images.map((image, index) => (
+                                <button
+                                    key={index}
+                                    onClick={() => setCurrentImageIndex(index)}
+                                    className={`flex-shrink-0 overflow-hidden rounded-lg transition ${
+                                        index === currentImageIndex
+                                            ? 'ring-2 ring-white'
+                                            : 'opacity-50 hover:opacity-100'
+                                    }`}
+                                >
+                                    <img
+                                        src={image}
+                                        alt={`Thumbnail ${index + 1}`}
+                                        className="h-16 w-24 object-cover"
+                                    />
+                                </button>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            )}
         </AuthenticatedLayout>
     );
 }

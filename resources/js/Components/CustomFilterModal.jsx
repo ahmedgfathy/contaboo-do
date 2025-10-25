@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { router } from '@inertiajs/react';
 
-export default function CustomFilterModal({ show, onClose, types, statuses, listingTypes, users, availableColumns, editingFilter = null }) {
+export default function CustomFilterModal({ show, onClose, types, statuses, listingTypes, users, availableColumns, editingFilter = null, module = 'properties' }) {
     const [filterName, setFilterName] = useState('');
     const [isPublic, setIsPublic] = useState(false);
     const [selectedColumns, setSelectedColumns] = useState([]);
@@ -93,7 +93,7 @@ export default function CustomFilterModal({ show, onClose, types, statuses, list
         const data = {
             name: filterName,
             is_public: isPublic,
-            module: 'properties',
+            module: module,
             columns: selectedColumns,
             conditions: conditions.filter(c => c.field && c.value),
         };

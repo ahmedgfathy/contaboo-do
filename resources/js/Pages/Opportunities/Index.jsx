@@ -744,6 +744,7 @@ export default function OpportunitiesIndex({ opportunities, users, filters, stag
                 users={users}
                 availableColumns={availableColumns}
                 editingFilter={editingFilter}
+                module="opportunities"
             />
             </div>
         </AuthenticatedLayout>

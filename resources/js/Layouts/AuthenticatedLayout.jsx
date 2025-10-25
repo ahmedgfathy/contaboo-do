@@ -17,7 +17,7 @@ export default function AuthenticatedLayout({ header, children }) {
         { name: 'Opportunities', href: 'opportunities.index', icon: 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' },
         { name: 'Reports', href: 'reports.index', icon: 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z' },
         { name: 'Activities', href: 'activities.index', icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4' },
-        { name: 'Management', href: 'dashboard', icon: 'M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z' },
+        { name: 'Management', href: 'management.index', icon: 'M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z' },
     ];
 
     if (isAdmin) {
@@ -27,7 +27,7 @@ export default function AuthenticatedLayout({ header, children }) {
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
             <div className="hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-64 lg:flex-col">
-                <div className="flex grow flex-col gap-y-5 overflow-y-auto border-r border-gray-200 bg-white px-6 dark:border-gray-800 dark:bg-gray-950">
+                <div className="flex grow flex-col gap-y-5 overflow-y-auto bg-white px-6 dark:bg-gray-950">
                     <div className="flex h-16 shrink-0 items-center gap-3">
                         <ApplicationLogo className="h-10 w-10" />
                         <span className="text-xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
@@ -115,6 +115,19 @@ export default function AuthenticatedLayout({ header, children }) {
                             {header && <h1 className="text-xl font-semibold text-gray-900 lg:text-white">{header}</h1>}
                         </div>
                         <div className="flex items-center gap-x-4 lg:gap-x-6">
+                            {/* Notification Icon with Badge */}
+                            <button className="relative rounded-full p-1.5 text-gray-600 hover:bg-gray-100 lg:text-gray-300 lg:hover:bg-gray-800" title="Notifications">
+                                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
+                                </svg>
+                                <span className="absolute top-0 right-0 flex h-5 w-5 items-center justify-center rounded-full bg-red-600 text-xs font-semibold text-white">5</span>
+                            </button>
+
+                            {/* Language Switcher */}
+                            <button className="flex items-center rounded-full p-1.5 hover:bg-gray-100 lg:hover:bg-gray-800" title="Switch Language">
+                                <img src="https://flagcdn.com/w40/us.png" alt="English" className="h-6 w-6 rounded-full" />
+                            </button>
+
                             <Dropdown>
                                 <Dropdown.Trigger>
                                     <button className="flex items-center gap-x-3 text-sm font-semibold text-gray-900 hover:text-gray-700 lg:text-white lg:hover:text-gray-300">

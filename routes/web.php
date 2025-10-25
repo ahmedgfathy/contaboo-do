@@ -8,6 +8,7 @@ use App\Http\Controllers\OpportunitiesController;
 use App\Http\Controllers\ActivitiesController;
 use App\Http\Controllers\ContactsController;
 use App\Http\Controllers\SavedFiltersController;
+use App\Http\Controllers\ManagementController;
 use App\Models\Lead;
 use App\Models\LeadAudit;
 use App\Models\Property;
@@ -140,6 +141,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/reports', function () {
         return Inertia::render('Reports/Index');
     })->name('reports.index');
+    
+    // Management Routes
+    Route::get('/management', [ManagementController::class, 'index'])->name('management.index');
     
     // User Management Routes
     Route::get('/users', [UserManagementController::class, 'index'])->name('users.index');

@@ -797,29 +797,51 @@ export default function PropertiesIndex({ properties, users, filters, types, sta
                             properties.data.map((property) => (
                                 <div key={property.id} className="overflow-hidden rounded-lg bg-white shadow transition hover:shadow-lg dark:bg-gray-800">
                                     {/* Property Image */}
-                                    <div className="relative h-48 bg-gray-200 dark:bg-gray-700">
-                                        {property.images && property.images.length > 0 ? (
-                                            <img
-                                                src={`/storage/${property.images[0]}`}
-                                                alt={property.title}
-                                                className="h-full w-full object-cover"
-                                            />
-                                        ) : (
-                                            <div className="flex h-full items-center justify-center">
-                                                <svg className="h-16 w-16 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                                                </svg>
+                                    <Link href={route('properties.show', property.id)} className="block">
+                                        <div className="relative h-48 bg-gray-200 dark:bg-gray-700 overflow-hidden group">
+                                            {property.images && property.images.length > 0 ? (
+                                                <img
+                                                    src={property.images[0]}
+                                                    alt={property.title}
+                                                    className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"
+                                                    onError={(e) => {
+                                                        e.target.onerror = null;
+                                                        e.target.src = '';
+                                                        e.target.style.display = 'none';
+                                                        e.target.parentElement.innerHTML = `
+                                                            <div class="flex h-full items-center justify-center">
+                                                                <svg class="h-16 w-16 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                                                                </svg>
+                                                            </div>
+                                                        `;
+                                                    }}
+                                                />
+                                            ) : (
+                                                <div className="flex h-full items-center justify-center">
+                                                    <svg className="h-16 w-16 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                                                    </svg>
+                                                </div>
+                                            )}
+                                            <div className="absolute top-3 right-3 flex gap-2">
+                                                <span className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${getStatusColor(property.status)}`}>
+                                                    {property.status.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
+                                                </span>
+                                                <span className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${getListingTypeColor(property.listing_type)}`}>
+                                                    {property.listing_type.charAt(0).toUpperCase() + property.listing_type.slice(1)}
+                                                </span>
                                             </div>
-                                        )}
-                                        <div className="absolute top-3 right-3 flex gap-2">
-                                            <span className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${getStatusColor(property.status)}`}>
-                                                {property.status.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
-                                            </span>
-                                            <span className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${getListingTypeColor(property.listing_type)}`}>
-                                                {property.listing_type.charAt(0).toUpperCase() + property.listing_type.slice(1)}
-                                            </span>
+                                            {property.images && property.images.length > 1 && (
+                                                <div className="absolute bottom-3 left-3 rounded-full bg-black/50 px-2 py-1 text-xs text-white backdrop-blur-sm">
+                                                    <svg className="inline h-3 w-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                                    </svg>
+                                                    {property.images.length}
+                                                </div>
+                                            )}
                                         </div>
-                                    </div>
+                                    </Link>
 
                                     {/* Property Details */}
                                     <div className="p-5">
@@ -1015,6 +1037,7 @@ export default function PropertiesIndex({ properties, users, filters, types, sta
                 users={users}
                 availableColumns={availableColumns}
                 editingFilter={editingFilter}
+                module="properties"
             />
         </AuthenticatedLayout>
     );

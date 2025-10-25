@@ -744,6 +744,7 @@ export default function ContactsIndex({ contacts, types, statuses, filters, stat
                 users={[]}
                 availableColumns={availableColumns}
                 editingFilter={editingFilter}
+                module="contacts"
             />
             </div>
         </AuthenticatedLayout>
