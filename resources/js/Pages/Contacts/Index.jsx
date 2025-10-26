@@ -7,6 +7,7 @@ import ScrollToTop from '@/Components/ScrollToTop';
 import axios from 'axios';
 
 export default function ContactsIndex({ contacts, types, statuses, filters, stats, savedFilters = [], availableColumns = [] }) {
+    const [locale, setLocale] = useState(() => localStorage.getItem('crm_locale') || 'en');
     const [showFilters, setShowFilters] = useState(false);
     const [importFile, setImportFile] = useState(null);
     const [showImportModal, setShowImportModal] = useState(false);
@@ -16,6 +17,122 @@ export default function ContactsIndex({ contacts, types, statuses, filters, stat
     const [visibleColumns, setVisibleColumns] = useState([]);
     const [perPage, setPerPage] = useState(contacts.per_page || 15);
     const initialRender = useRef(true);
+
+    // Listen for locale changes
+    useEffect(() => {
+        const handleLocaleChange = () => {
+            const newLocale = localStorage.getItem('crm_locale') || 'en';
+            setLocale(newLocale);
+        };
+
+        window.addEventListener('localeChange', handleLocaleChange);
+        window.addEventListener('storage', handleLocaleChange);
+
+        return () => {
+            window.removeEventListener('localeChange', handleLocaleChange);
+            window.removeEventListener('storage', handleLocaleChange);
+        };
+    }, []);
+
+    // Translations
+    const translations = {
+        en: {
+            contactsManagement: 'Contacts Management',
+            contacts: 'Contacts',
+            totalClients: 'Total Clients',
+            totalPartners: 'Total Partners',
+            totalAgents: 'Total Agents',
+            totalBrokers: 'Total Brokers',
+            addNewContact: 'Add New Contact',
+            import: 'Import',
+            export: 'Export',
+            filters: 'Filters',
+            selectFilter: 'Select a filter',
+            createCustomFilter: 'Create Custom Filter',
+            searchContacts: 'Search contacts...',
+            type: 'Type',
+            allTypes: 'All Types',
+            status: 'Status',
+            allStatuses: 'All Statuses',
+            country: 'Country',
+            reset: 'Reset Filters',
+            companyName: 'Company Name',
+            contactPerson: 'Contact Person',
+            email: 'Email',
+            phone: 'Phone',
+            city: 'City',
+            actions: 'Actions',
+            view: 'View',
+            edit: 'Edit',
+            delete: 'Delete',
+            deleteConfirm: 'Are you sure you want to delete this contact?',
+            noContactsFound: 'No contacts found. Create your first contact!',
+            active: 'Active',
+            clearAll: 'Clear All',
+            client: 'Client',
+            partner: 'Partner',
+            vendor: 'Vendor',
+            other: 'Other',
+            inactive: 'Inactive',
+            importContacts: 'Import Contacts',
+            csvFile: 'CSV File',
+            cancel: 'Cancel',
+            pleaseSelectFile: 'Please select a file',
+            showing: 'Showing',
+            to: 'to',
+            of: 'of',
+            results: 'results',
+        },
+        ar: {
+            contactsManagement: 'إدارة جهات الاتصال',
+            contacts: 'جهات الاتصال',
+            totalClients: 'إجمالي العملاء',
+            totalPartners: 'إجمالي الشركاء',
+            totalAgents: 'إجمالي الوكلاء',
+            totalBrokers: 'إجمالي الوسطاء',
+            addNewContact: 'إضافة جهة اتصال',
+            import: 'استيراد',
+            export: 'تصدير',
+            filters: 'الفلاتر',
+            selectFilter: 'اختر فلتر',
+            createCustomFilter: 'إنشاء فلتر مخصص',
+            searchContacts: 'بحث عن جهات الاتصال...',
+            type: 'النوع',
+            allTypes: 'كل الأنواع',
+            status: 'الحالة',
+            allStatuses: 'كل الحالات',
+            country: 'الدولة',
+            reset: 'إعادة تعيين',
+            companyName: 'اسم الشركة',
+            contactPerson: 'جهة الاتصال',
+            email: 'البريد الإلكتروني',
+            phone: 'الهاتف',
+            city: 'المدينة',
+            actions: 'الإجراءات',
+            view: 'عرض',
+            edit: 'تعديل',
+            delete: 'حذف',
+            deleteConfirm: 'هل أنت متأكد من حذف جهة الاتصال هذه؟',
+            noContactsFound: 'لم يتم العثور على جهات اتصال. أنشئ أول جهة اتصال!',
+            active: 'نشط',
+            clearAll: 'مسح الكل',
+            client: 'عميل',
+            partner: 'شريك',
+            vendor: 'مورد',
+            other: 'آخر',
+            inactive: 'غير نشط',
+            importContacts: 'استيراد جهات الاتصال',
+            csvFile: 'ملف CSV',
+            cancel: 'إلغاء',
+            pleaseSelectFile: 'الرجاء اختيار ملف',
+            showing: 'عرض',
+            to: 'إلى',
+            of: 'من',
+            results: 'نتيجة',
+        },
+    };
+
+    const t = translations[locale];
 
     const searchForm = useForm({
         search: filters.search || '',
@@ -81,7 +198,7 @@ export default function ContactsIndex({ contacts, types, statuses, filters, stat
     };
 
     const handleDelete = (id) => {
-        if (confirm('Are you sure you want to delete this contact?')) {
+        if (confirm(t.deleteConfirm)) {
             router.delete(route('contacts.destroy', id));
         }
     };
@@ -96,7 +213,7 @@ export default function ContactsIndex({ contacts, types, statuses, filters, stat
     const handleImport = (e) => {
         e.preventDefault();
         if (!importFile) {
-            alert('Please select a file');
+            alert(t.pleaseSelectFile);
             return;
         }
 
@@ -123,7 +240,13 @@ export default function ContactsIndex({ contacts, types, statuses, filters, stat
     };
 
     const getTypeLabel = (type) => {
-        return type.charAt(0).toUpperCase() + type.slice(1);
+        const labels = {
+            client: t.client,
+            partner: t.partner,
+            vendor: t.vendor,
+            other: t.other,
+        };
+        return labels[type.toLowerCase()] || type.charAt(0).toUpperCase() + type.slice(1);
     };
 
     // Custom filter functions
@@ -173,8 +296,8 @@ export default function ContactsIndex({ contacts, types, statuses, filters, stat
     };
 
     return (
-        <AuthenticatedLayout header="Contacts Management">
-            <Head title="Contacts" />
+        <AuthenticatedLayout header={t.contactsManagement}>
+            <Head title={t.contacts} />
 
             <div className="space-y-6">
                 {/* Statistics Cards */}
@@ -191,9 +314,9 @@ export default function ContactsIndex({ contacts, types, statuses, filters, stat
                                             </svg>
                                         </div>
                                     </div>
-                                    <div className="ml-5 w-0 flex-1">
+                                    <div className={locale === 'ar' ? 'mr-5 w-0 flex-1' : 'ml-5 w-0 flex-1'}>
                                         <dl>
-                                            <dt className="truncate text-sm font-medium text-gray-500 dark:text-gray-400">Total Clients</dt>
+                                            <dt className="truncate text-sm font-medium text-gray-500 dark:text-gray-400">{t.totalClients}</dt>
                                             <dd className="text-3xl font-semibold text-gray-900 dark:text-white">{stats.total_clients}</dd>
                                         </dl>
                                     </div>
@@ -212,9 +335,9 @@ export default function ContactsIndex({ contacts, types, statuses, filters, stat
                                             </svg>
                                         </div>
                                     </div>
-                                    <div className="ml-5 w-0 flex-1">
+                                    <div className={locale === 'ar' ? 'mr-5 w-0 flex-1' : 'ml-5 w-0 flex-1'}>
                                         <dl>
-                                            <dt className="truncate text-sm font-medium text-gray-500 dark:text-gray-400">Total Partners</dt>
+                                            <dt className="truncate text-sm font-medium text-gray-500 dark:text-gray-400">{t.totalPartners}</dt>
                                             <dd className="text-3xl font-semibold text-gray-900 dark:text-white">{stats.total_partners}</dd>
                                         </dl>
                                     </div>
@@ -233,9 +356,9 @@ export default function ContactsIndex({ contacts, types, statuses, filters, stat
                                             </svg>
                                         </div>
                                     </div>
-                                    <div className="ml-5 w-0 flex-1">
+                                    <div className={locale === 'ar' ? 'mr-5 w-0 flex-1' : 'ml-5 w-0 flex-1'}>
                                         <dl>
-                                            <dt className="truncate text-sm font-medium text-gray-500 dark:text-gray-400">Total Agents</dt>
+                                            <dt className="truncate text-sm font-medium text-gray-500 dark:text-gray-400">{t.totalAgents}</dt>
                                             <dd className="text-3xl font-semibold text-gray-900 dark:text-white">{stats.total_agents}</dd>
                                         </dl>
                                     </div>
@@ -254,9 +377,9 @@ export default function ContactsIndex({ contacts, types, statuses, filters, stat
                                             </svg>
                                         </div>
                                     </div>
-                                    <div className="ml-5 w-0 flex-1">
+                                    <div className={locale === 'ar' ? 'mr-5 w-0 flex-1' : 'ml-5 w-0 flex-1'}>
                                         <dl>
-                                            <dt className="truncate text-sm font-medium text-gray-500 dark:text-gray-400">Total Brokers</dt>
+                                            <dt className="truncate text-sm font-medium text-gray-500 dark:text-gray-400">{t.totalBrokers}</dt>
                                             <dd className="text-3xl font-semibold text-gray-900 dark:text-white">{stats.total_brokers}</dd>
                                         </dl>
                                     </div>
@@ -273,34 +396,34 @@ export default function ContactsIndex({ contacts, types, statuses, filters, stat
                             href={route('contacts.create')}
                             className="inline-flex items-center rounded-lg bg-gradient-to-r from-indigo-600 to-purple-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:from-indigo-700 hover:to-purple-700"
                         >
-                            <svg className="mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg className={locale === 'ar' ? 'ml-2 h-5 w-5' : 'mr-2 h-5 w-5'} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                             </svg>
-                            Add New Contact
+                            {t.addNewContact}
                         </Link>
                         <button
                             onClick={() => setShowImportModal(true)}
                             className="inline-flex items-center rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
                         >
-                            <svg className="mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg className={locale === 'ar' ? 'ml-2 h-5 w-5' : 'mr-2 h-5 w-5'} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
                             </svg>
-                            Import
+                            {t.import}
                         </button>
                         <button
                             onClick={handleExport}
                             className="inline-flex items-center rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
                         >
-                            <svg className="mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg className={locale === 'ar' ? 'ml-2 h-5 w-5' : 'mr-2 h-5 w-5'} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                             </svg>
-                            Export
+                            {t.export}
                         </button>
 
                         {/* Custom Filters Section */}
                         <div className="flex items-center gap-2">
                             <label className="text-sm font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap">
-                                Filters:
+                                {t.filters}:
                             </label>
                             <select
                                 value={selectedFilter?.id || ''}
@@ -319,7 +442,7 @@ export default function ContactsIndex({ contacts, types, statuses, filters, stat
                                 }}
                                 className="rounded-lg border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                             >
-                                <option value="">All (No Filter)</option>
+                                <option value="">{t.selectFilter}</option>
                                 {savedFilters.map((filter) => (
                                     <option key={filter.id} value={filter.id}>
                                         {filter.name} {filter.is_public ? '(Public)' : '(Private)'}
@@ -332,7 +455,7 @@ export default function ContactsIndex({ contacts, types, statuses, filters, stat
                                     setShowFilterModal(true);
                                 }}
                                 className="inline-flex items-center rounded-lg border border-gray-300 bg-white p-2 text-gray-700 shadow-sm hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
-                                title="Create Filter"
+                                title={t.createCustomFilter}
                             >
                                 <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -372,7 +495,7 @@ export default function ContactsIndex({ contacts, types, statuses, filters, stat
                                 <div className="flex-1">
                                     <input
                                         type="text"
-                                        placeholder="Search by title, reference number, address, city, country, or notes..."
+                                        placeholder={t.searchContacts}
                                         value={searchForm.data.search}
                                         onChange={(e) => searchForm.setData('search', e.target.value)}
                                         className="w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
@@ -383,13 +506,13 @@ export default function ContactsIndex({ contacts, types, statuses, filters, stat
                                     onClick={() => setShowFilters(!showFilters)}
                                     className="inline-flex items-center rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300"
                                 >
-                                    <svg className="mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <svg className={locale === 'ar' ? 'ml-2 h-5 w-5' : 'mr-2 h-5 w-5'} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
                                     </svg>
-                                    Filters
+                                    {t.filters}
                                     {(filters.search || filters.type || filters.status || filters.type || filters.assigned_to || filters.value_min || filters.value_max || filters.bedrooms || filters.date_from || filters.date_to) && (
-                                        <span className="ml-2 inline-flex items-center rounded-full bg-indigo-100 px-2 py-0.5 text-xs font-medium text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-400">
-                                            Active
+                                        <span className={locale === 'ar' ? 'mr-2 inline-flex items-center rounded-full bg-indigo-100 px-2 py-0.5 text-xs font-medium text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-400' : 'ml-2 inline-flex items-center rounded-full bg-indigo-100 px-2 py-0.5 text-xs font-medium text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-400'}>
+                                            {t.active}
                                         </span>
                                     )}
                                 </button>
@@ -399,7 +522,7 @@ export default function ContactsIndex({ contacts, types, statuses, filters, stat
                                         onClick={handleReset}
                                         className="inline-flex items-center rounded-lg border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
                                     >
-                                        Clear All
+                                        {t.clearAll}
                                     </button>
                                 )}
                             </div>
@@ -407,13 +530,13 @@ export default function ContactsIndex({ contacts, types, statuses, filters, stat
                             {showFilters && (
                                 <div className="grid grid-cols-1 gap-4 rounded-lg border border-gray-200 p-4 dark:border-gray-700 md:grid-cols-2 lg:grid-cols-3">
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Type</label>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">{t.type}</label>
                                         <select
                                             value={searchForm.data.type}
                                             onChange={(e) => searchForm.setData('type', e.target.value)}
                                             className="mt-1 w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                                         >
-                                            <option value="">All Types</option>
+                                            <option value="">{t.allTypes}</option>
                                             {types.map((type) => (
                                                 <option key={type} value={type}>
                                                     {getTypeLabel(type)}
@@ -423,13 +546,13 @@ export default function ContactsIndex({ contacts, types, statuses, filters, stat
                                     </div>
 
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Status</label>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">{t.status}</label>
                                         <select
                                             value={searchForm.data.status}
                                             onChange={(e) => searchForm.setData('status', e.target.value)}
                                             className="mt-1 w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                                         >
-                                            <option value="">All Statuses</option>
+                                            <option value="">{t.allStatuses}</option>
                                             {statuses.map((status) => (
                                                 <option key={status} value={status}>
                                                     {status.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
@@ -439,10 +562,10 @@ export default function ContactsIndex({ contacts, types, statuses, filters, stat
                                     </div>
 
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Country</label>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">{t.country}</label>
                                         <input
                                             type="text"
-                                            placeholder="e.g., Egypt, USA"
+                                            placeholder={t.country}
                                             value={searchForm.data.country}
                                             onChange={(e) => searchForm.setData('country', e.target.value)}
                                             className="mt-1 w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
@@ -463,46 +586,46 @@ export default function ContactsIndex({ contacts, types, statuses, filters, stat
                                 <tr>
                                     {isColumnVisible('company_name') && (
                                         <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
-                                            Company Name
+                                            {t.companyName}
                                         </th>
                                     )}
                                     {isColumnVisible('contact_person') && (
                                         <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
-                                            Contact Person
+                                            {t.contactPerson}
                                         </th>
                                     )}
                                     {isColumnVisible('email') && (
                                         <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
-                                            Email
+                                            {t.email}
                                         </th>
                                     )}
                                     {isColumnVisible('phone') && (
                                         <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
-                                            Phone
+                                            {t.phone}
                                         </th>
                                     )}
                                     {isColumnVisible('type') && (
                                         <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
-                                            Type
+                                            {t.type}
                                         </th>
                                     )}
                                     {isColumnVisible('status') && (
                                         <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
-                                            Status
+                                            {t.status}
                                         </th>
                                     )}
                                     {isColumnVisible('city') && (
                                         <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
-                                            City
+                                            {t.city}
                                         </th>
                                     )}
                                     {isColumnVisible('country') && (
                                         <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
-                                            Country
+                                            {t.country}
                                         </th>
                                     )}
                                     <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
-                                        Actions
+                                        {t.actions}
                                     </th>
                                 </tr>
                             </thead>
@@ -513,7 +636,7 @@ export default function ContactsIndex({ contacts, types, statuses, filters, stat
                                             <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                                             </svg>
-                                            <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">No contacts found. Create your first contact!</p>
+                                            <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">{t.noContactsFound}</p>
                                         </td>
                                     </tr>
                                 ) : (
@@ -591,7 +714,7 @@ export default function ContactsIndex({ contacts, types, statuses, filters, stat
                                             {isColumnVisible('status') && (
                                                 <td className="whitespace-nowrap px-6 py-4">
                                                     <span className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${contact.status === 'active' ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'}`}>
-                                                        {contact.status.charAt(0).toUpperCase() + contact.status.slice(1)}
+                                                        {contact.status === 'active' ? t.active : t.inactive}
                                                     </span>
                                                 </td>
                                             )}
@@ -610,7 +733,7 @@ export default function ContactsIndex({ contacts, types, statuses, filters, stat
                                                     <Link
                                                         href={route('contacts.show', contact.id)}
                                                         className="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300"
-                                                        title="View"
+                                                        title={t.view}
                                                     >
                                                         <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -620,7 +743,7 @@ export default function ContactsIndex({ contacts, types, statuses, filters, stat
                                                     <Link
                                                         href={route('contacts.edit', contact.id)}
                                                         className="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300"
-                                                        title="Edit"
+                                                        title={t.edit}
                                                     >
                                                         <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -629,7 +752,7 @@ export default function ContactsIndex({ contacts, types, statuses, filters, stat
                                                     <button
                                                         onClick={() => handleDelete(contact.id)}
                                                         className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
-                                                        title="Delete"
+                                                        title={t.delete}
                                                     >
                                                         <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -662,11 +785,11 @@ export default function ContactsIndex({ contacts, types, statuses, filters, stat
                     <div className="flex min-h-screen items-center justify-center px-4">
                         <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onClick={() => setShowImportModal(false)}></div>
                         <div className="relative w-full max-w-md rounded-lg bg-white p-6 shadow-xl dark:bg-gray-800">
-                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Import Contacts</h3>
+                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{t.importContacts}</h3>
                             <form onSubmit={handleImport} className="mt-4">
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                        CSV File
+                                        {t.csvFile}
                                     </label>
                                     <input
                                         type="file"
@@ -674,9 +797,6 @@ export default function ContactsIndex({ contacts, types, statuses, filters, stat
                                         onChange={(e) => setImportFile(e.target.files[0])}
                                         className="mt-1 w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                                     />
-                                    <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                                        Expected columns: Title, Type, Status, Listing Type, Price, Area, Bedrooms, Bathrooms, Address, City, Country, Reference Number
-                                    </p>
                                 </div>
                                 <div className="mt-6 flex justify-end gap-3">
                                     <button
@@ -684,13 +804,13 @@ export default function ContactsIndex({ contacts, types, statuses, filters, stat
                                         onClick={() => setShowImportModal(false)}
                                         className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
                                     >
-                                        Cancel
+                                        {t.cancel}
                                     </button>
                                     <button
                                         type="submit"
                                         className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700"
                                     >
-                                        Import
+                                        {t.import}
                                     </button>
                                 </div>
                             </form>
