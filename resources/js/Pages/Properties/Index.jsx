@@ -4,6 +4,150 @@ import { Head, Link, router, useForm } from '@inertiajs/react';
 import { useState, useEffect } from 'react';
 
 export default function PropertiesIndex({ properties, users, filters, types, statuses, listing_types, stats, savedFilters, availableColumns }) {
+    const [locale, setLocale] = useState(() => localStorage.getItem('crm_locale') || 'en');
+    
+    useEffect(() => {
+        const handleLocaleChange = () => {
+            const newLocale = localStorage.getItem('crm_locale') || 'en';
+            setLocale(newLocale);
+        };
+        window.addEventListener('localeChange', handleLocaleChange);
+        window.addEventListener('storage', handleLocaleChange);
+        return () => {
+            window.removeEventListener('localeChange', handleLocaleChange);
+            window.removeEventListener('storage', handleLocaleChange);
+        };
+    }, []);
+
+    const translations = {
+        en: {
+            properties: 'Properties',
+            addNew: 'Add New Property',
+            import: 'Import',
+            export: 'Export',
+            filters: 'Filters',
+            saveFilter: 'Save Filter',
+            savedFilters: 'Saved Filters',
+            customize: 'Customize',
+            reset: 'Reset',
+            search: 'Search properties...',
+            type: 'Type',
+            status: 'Status',
+            listingType: 'Listing Type',
+            assignedTo: 'Assigned To',
+            priceMin: 'Min Price',
+            priceMax: 'Max Price',
+            bedrooms: 'Bedrooms',
+            dateFrom: 'Date From',
+            dateTo: 'Date To',
+            allTypes: 'All Types',
+            allStatuses: 'All Statuses',
+            allListingTypes: 'All Listing Types',
+            allUsers: 'All Users',
+            totalProperties: 'Total Properties',
+            availableProperties: 'Available',
+            soldProperties: 'Sold',
+            rentedProperties: 'Rented',
+            title: 'Title',
+            price: 'Price',
+            area: 'Area',
+            owner: 'Owner',
+            actions: 'Actions',
+            view: 'View',
+            edit: 'Edit',
+            delete: 'Delete',
+            confirmDelete: 'Are you sure you want to delete this property?',
+            importProperties: 'Import Properties',
+            selectFile: 'Select CSV File',
+            cancel: 'Cancel',
+            uploadFile: 'Upload File',
+            listView: 'List View',
+            gridView: 'Grid View',
+            apartment: 'Apartment',
+            villa: 'Villa',
+            office: 'Office',
+            land: 'Land',
+            warehouse: 'Warehouse',
+            shop: 'Shop',
+            other: 'Other',
+            available: 'Available',
+            sold: 'Sold',
+            rented: 'Rented',
+            pending: 'Pending',
+            sale: 'For Sale',
+            rent: 'For Rent',
+            sqm: 'sqm',
+            bed: 'Bed',
+            bath: 'Bath',
+            parking: 'Parking',
+            confirmDeleteFilter: 'Are you sure you want to delete this filter?',
+        },
+        ar: {
+            properties: 'العقارات',
+            addNew: 'إضافة عقار جديد',
+            import: 'استيراد',
+            export: 'تصدير',
+            filters: 'الفلاتر',
+            saveFilter: 'حفظ الفلتر',
+            savedFilters: 'الفلاتر المحفوظة',
+            customize: 'تخصيص',
+            reset: 'إعادة تعيين',
+            search: 'البحث عن عقارات...',
+            type: 'النوع',
+            status: 'الحالة',
+            listingType: 'نوع الإعلان',
+            assignedTo: 'مسند إلى',
+            priceMin: 'الحد الأدنى للسعر',
+            priceMax: 'الحد الأقصى للسعر',
+            bedrooms: 'غرف النوم',
+            dateFrom: 'من تاريخ',
+            dateTo: 'إلى تاريخ',
+            allTypes: 'جميع الأنواع',
+            allStatuses: 'جميع الحالات',
+            allListingTypes: 'جميع أنواع الإعلانات',
+            allUsers: 'جميع المستخدمين',
+            totalProperties: 'إجمالي العقارات',
+            availableProperties: 'متاحة',
+            soldProperties: 'مباعة',
+            rentedProperties: 'مؤجرة',
+            title: 'العنوان',
+            price: 'السعر',
+            area: 'المساحة',
+            owner: 'المالك',
+            actions: 'الإجراءات',
+            view: 'عرض',
+            edit: 'تعديل',
+            delete: 'حذف',
+            confirmDelete: 'هل أنت متأكد من حذف هذا العقار؟',
+            importProperties: 'استيراد العقارات',
+            selectFile: 'اختر ملف CSV',
+            cancel: 'إلغاء',
+            uploadFile: 'رفع الملف',
+            listView: 'عرض القائمة',
+            gridView: 'عرض الشبكة',
+            apartment: 'شقة',
+            villa: 'فيلا',
+            office: 'مكتب',
+            land: 'أرض',
+            warehouse: 'مستودع',
+            shop: 'محل',
+            other: 'آخر',
+            available: 'متاح',
+            sold: 'مباع',
+            rented: 'مؤجر',
+            pending: 'قيد الانتظار',
+            sale: 'للبيع',
+            rent: 'للإيجار',
+            sqm: 'م²',
+            bed: 'غرفة',
+            bath: 'حمام',
+            parking: 'مواقف',
+            confirmDeleteFilter: 'هل أنت متأكد من حذف هذا الفلتر؟',
+        },
+    };
+
+    const t = translations[locale];
+
     const [showFilters, setShowFilters] = useState(false);
     const [importFile, setImportFile] = useState(null);
     const [showImportModal, setShowImportModal] = useState(false);
@@ -152,7 +296,34 @@ export default function PropertiesIndex({ properties, users, filters, types, sta
     };
 
     const getTypeLabel = (type) => {
-        return type.charAt(0).toUpperCase() + type.slice(1);
+        const typeMap = {
+            apartment: t.apartment,
+            villa: t.villa,
+            office: t.office,
+            land: t.land,
+            warehouse: t.warehouse,
+            shop: t.shop,
+            other: t.other,
+        };
+        return typeMap[type] || type;
+    };
+
+    const getStatusLabel = (status) => {
+        const statusMap = {
+            available: t.available,
+            sold: t.sold,
+            rented: t.rented,
+            pending: t.pending,
+        };
+        return statusMap[status] || status;
+    };
+
+    const getListingTypeLabel = (listingType) => {
+        const listingTypeMap = {
+            sale: t.sale,
+            rent: t.rent,
+        };
+        return listingTypeMap[listingType] || listingType;
     };
 
     const getListingTypeColor = (listingType) => {
@@ -162,8 +333,8 @@ export default function PropertiesIndex({ properties, users, filters, types, sta
     };
 
     return (
-        <AuthenticatedLayout header="Properties Management">
-            <Head title="Properties" />
+        <AuthenticatedLayout header={t.properties}>
+            <Head title={t.properties} />
 
             <div className="space-y-6">
                 {/* Statistics Cards */}
@@ -180,9 +351,9 @@ export default function PropertiesIndex({ properties, users, filters, types, sta
                                             </svg>
                                         </div>
                                     </div>
-                                    <div className="ml-5 w-0 flex-1">
+                                    <div className={locale === 'ar' ? 'mr-5 w-0 flex-1' : 'ml-5 w-0 flex-1'}>
                                         <dl>
-                                            <dt className="truncate text-sm font-medium text-gray-500 dark:text-gray-400">Total Properties</dt>
+                                            <dt className="truncate text-sm font-medium text-gray-500 dark:text-gray-400">{t.totalProperties}</dt>
                                             <dd className="text-3xl font-semibold text-gray-900 dark:text-white">{stats.total_properties}</dd>
                                         </dl>
                                     </div>
@@ -201,9 +372,9 @@ export default function PropertiesIndex({ properties, users, filters, types, sta
                                             </svg>
                                         </div>
                                     </div>
-                                    <div className="ml-5 w-0 flex-1">
+                                    <div className={locale === 'ar' ? 'mr-5 w-0 flex-1' : 'ml-5 w-0 flex-1'}>
                                         <dl>
-                                            <dt className="truncate text-sm font-medium text-gray-500 dark:text-gray-400">For Sale</dt>
+                                            <dt className="truncate text-sm font-medium text-gray-500 dark:text-gray-400">{t.sale}</dt>
                                             <dd className="text-3xl font-semibold text-gray-900 dark:text-white">{stats.for_sale}</dd>
                                         </dl>
                                     </div>
@@ -222,9 +393,9 @@ export default function PropertiesIndex({ properties, users, filters, types, sta
                                             </svg>
                                         </div>
                                     </div>
-                                    <div className="ml-5 w-0 flex-1">
+                                    <div className={locale === 'ar' ? 'mr-5 w-0 flex-1' : 'ml-5 w-0 flex-1'}>
                                         <dl>
-                                            <dt className="truncate text-sm font-medium text-gray-500 dark:text-gray-400">For Rent</dt>
+                                            <dt className="truncate text-sm font-medium text-gray-500 dark:text-gray-400">{t.rent}</dt>
                                             <dd className="text-3xl font-semibold text-gray-900 dark:text-white">{stats.for_rent}</dd>
                                         </dl>
                                     </div>
@@ -243,9 +414,9 @@ export default function PropertiesIndex({ properties, users, filters, types, sta
                                             </svg>
                                         </div>
                                     </div>
-                                    <div className="ml-5 w-0 flex-1">
+                                    <div className={locale === 'ar' ? 'mr-5 w-0 flex-1' : 'ml-5 w-0 flex-1'}>
                                         <dl>
-                                            <dt className="truncate text-sm font-medium text-gray-500 dark:text-gray-400">Sold</dt>
+                                            <dt className="truncate text-sm font-medium text-gray-500 dark:text-gray-400">{t.sold}</dt>
                                             <dd className="text-3xl font-semibold text-gray-900 dark:text-white">{stats.sold}</dd>
                                         </dl>
                                     </div>
@@ -262,34 +433,34 @@ export default function PropertiesIndex({ properties, users, filters, types, sta
                             href={route('properties.create')}
                             className="inline-flex items-center rounded-lg bg-gradient-to-r from-indigo-600 to-purple-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:from-indigo-700 hover:to-purple-700"
                         >
-                            <svg className="mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg className={locale === 'ar' ? 'ml-2 h-5 w-5' : 'mr-2 h-5 w-5'} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                             </svg>
-                            Add New Property
+                            {t.addNew}
                         </Link>
                         <button
                             onClick={() => setShowImportModal(true)}
                             className="inline-flex items-center rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
                         >
-                            <svg className="mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg className={locale === 'ar' ? 'ml-2 h-5 w-5' : 'mr-2 h-5 w-5'} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
                             </svg>
-                            Import
+                            {t.import}
                         </button>
                         <button
                             onClick={handleExport}
                             className="inline-flex items-center rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
                         >
-                            <svg className="mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg className={locale === 'ar' ? 'ml-2 h-5 w-5' : 'mr-2 h-5 w-5'} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                             </svg>
-                            Export
+                            {t.export}
                         </button>
 
                         {/* Custom Filters Section */}
                         <div className="flex items-center gap-2">
                             <label className="text-sm font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap">
-                                Filters:
+                                {t.filters}:
                             </label>
                             <select
                                 value={selectedFilter?.id || ''}
