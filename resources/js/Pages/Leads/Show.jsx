@@ -1,10 +1,12 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import { useState, useEffect } from 'react';
 import ScrollToTop from '@/Components/ScrollToTop';
+import ConfirmationModal from '@/Components/ConfirmationModal';
 
 export default function Show({ lead }) {
     const [locale, setLocale] = useState(() => localStorage.getItem('crm_locale') || 'en');
+    const [showConvertModal, setShowConvertModal] = useState(false);
 
     useEffect(() => {
         const handleStorageChange = () => {
@@ -32,6 +34,14 @@ export default function Show({ lead }) {
             backToLeads: 'Back to Leads',
             createOpportunity: 'Create Opportunity',
             editLead: 'Edit Lead',
+            convertToContact: 'Convert to Contact',
+            convertToContactTitle: 'Convert Lead to Contact',
+            convertToContactMessage: 'Are you sure you want to convert this qualified lead to a contact? The lead data will be preserved and linked to the new contact.',
+            confirm: 'Convert',
+            cancel: 'Cancel',
+            alreadyConverted: 'Already Converted to Contact',
+            viewContact: 'View Contact',
+            onlyQualified: 'Only qualified leads can be converted',
             personalInformation: 'Personal Information',
             fullName: 'Full Name',
             email: 'Email',
@@ -76,6 +86,14 @@ export default function Show({ lead }) {
             backToLeads: 'العودة إلى العملاء المحتملين',
             createOpportunity: 'إنشاء فرصة',
             editLead: 'تعديل العميل المحتمل',
+            convertToContact: 'تحويل إلى جهة اتصال',
+            convertToContactTitle: 'تحويل العميل المحتمل إلى جهة اتصال',
+            convertToContactMessage: 'هل أنت متأكد من تحويل هذا العميل المؤهل إلى جهة اتصال؟ سيتم الحفاظ على بيانات العميل المحتمل وربطها بجهة الاتصال الجديدة.',
+            confirm: 'تحويل',
+            cancel: 'إلغاء',
+            alreadyConverted: 'تم التحويل إلى جهة اتصال',
+            viewContact: 'عرض جهة الاتصال',
+            onlyQualified: 'يمكن تحويل العملاء المؤهلين فقط',
             personalInformation: 'المعلومات الشخصية',
             fullName: 'الاسم الكامل',
             email: 'البريد الإلكتروني',
@@ -154,6 +172,15 @@ export default function Show({ lead }) {
         return colors[action] || 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400';
     };
 
+    const handleConvertToContact = () => {
+        router.post(route('leads.convertToContact', lead.id), {}, {
+            preserveScroll: true,
+            onError: (errors) => {
+                console.error('Conversion error:', errors);
+            }
+        });
+    };
+
     return (
         <AuthenticatedLayout header={lead.full_name} backLink={route('leads.index')}>
             <Head title={`${t.lead} - ${lead.full_name}`} />
@@ -162,15 +189,37 @@ export default function Show({ lead }) {
                 {/* Action Buttons */}
                 <div className="flex items-center justify-end">
                     <div className="flex gap-3">
-                        <Link
-                            href={route('opportunities.create', { lead_id: lead.id })}
-                            className="inline-flex items-center rounded-lg bg-gradient-to-r from-green-600 to-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:from-green-700 hover:to-emerald-700"
-                        >
-                            <svg className={`h-5 w-5 ${locale === 'ar' ? 'ml-2' : 'mr-2'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                            </svg>
-                            {t.createOpportunity}
-                        </Link>
+                        {lead.is_converted ? (
+                            <Link
+                                href={route('contacts.show', lead.converted_to_contact_id)}
+                                className="inline-flex items-center rounded-lg bg-gradient-to-r from-green-600 to-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:from-green-700 hover:to-emerald-700"
+                            >
+                                <svg className={`h-5 w-5 ${locale === 'ar' ? 'ml-2' : 'mr-2'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                {t.viewContact}
+                            </Link>
+                        ) : lead.status === 'qualified' ? (
+                            <button
+                                onClick={() => setShowConvertModal(true)}
+                                className="inline-flex items-center rounded-lg bg-gradient-to-r from-green-600 to-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:from-green-700 hover:to-emerald-700"
+                            >
+                                <svg className={`h-5 w-5 ${locale === 'ar' ? 'ml-2' : 'mr-2'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                                </svg>
+                                {t.convertToContact}
+                            </button>
+                        ) : (
+                            <Link
+                                href={route('opportunities.create', { lead_id: lead.id })}
+                                className="inline-flex items-center rounded-lg bg-gradient-to-r from-green-600 to-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:from-green-700 hover:to-emerald-700"
+                            >
+                                <svg className={`h-5 w-5 ${locale === 'ar' ? 'ml-2' : 'mr-2'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                                </svg>
+                                {t.createOpportunity}
+                            </Link>
+                        )}
                         <Link
                             href={route('leads.edit', lead.id)}
                             className="inline-flex items-center rounded-lg bg-gradient-to-r from-indigo-600 to-purple-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:from-indigo-700 hover:to-purple-700"
@@ -521,6 +570,20 @@ export default function Show({ lead }) {
                     </div>
                 </div>
             </div>
+            
+            {/* Confirmation Modal */}
+            <ConfirmationModal
+                show={showConvertModal}
+                onClose={() => setShowConvertModal(false)}
+                onConfirm={handleConvertToContact}
+                title={t.convertToContactTitle}
+                message={t.convertToContactMessage}
+                confirmText={t.confirm}
+                cancelText={t.cancel}
+                confirmColor="green"
+                icon="user"
+            />
+            
             <ScrollToTop />
         </AuthenticatedLayout>
     );

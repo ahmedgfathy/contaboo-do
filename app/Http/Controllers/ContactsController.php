@@ -45,7 +45,15 @@ class ContactsController extends Controller
         $sortDirection = $request->get('direction', 'asc');
         $query->orderBy($sortField, $sortDirection);
 
-        $contacts = $query->paginate(15)->withQueryString();
+        // Get per_page from request, session, or default to 15
+        $perPage = $request->get('per_page', session('contacts_per_page', 15));
+        
+        // Store per_page in session for persistence
+        if ($request->filled('per_page')) {
+            session(['contacts_per_page' => $perPage]);
+        }
+
+        $contacts = $query->paginate($perPage)->withQueryString();
 
         // Calculate statistics
         $stats = [
