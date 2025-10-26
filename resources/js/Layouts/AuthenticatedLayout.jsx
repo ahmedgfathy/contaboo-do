@@ -4,7 +4,7 @@ import { Link, usePage } from '@inertiajs/react';
 import { useState, useEffect } from 'react';
 import { Head } from '@inertiajs/react';
 
-export default function AuthenticatedLayout({ header, children }) {
+export default function AuthenticatedLayout({ header, children, backLink }) {
     const user = usePage().props.auth.user;
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [locale, setLocale] = useState(() => localStorage.getItem('crm_locale') || 'en');
@@ -194,7 +194,18 @@ export default function AuthenticatedLayout({ header, children }) {
                     <div className="h-6 w-px bg-gray-200 lg:hidden lg:bg-gray-700"></div>
 
                     <div className="flex flex-1 gap-x-4 self-stretch lg:gap-x-6">
-                        <div className="flex flex-1 items-center">
+                        <div className="flex flex-1 items-center gap-x-3">
+                            {backLink && (
+                                <Link
+                                    href={backLink}
+                                    className="inline-flex items-center text-gray-600 hover:text-gray-900 lg:text-gray-300 lg:hover:text-white transition-colors"
+                                    title={locale === 'ar' ? 'رجوع' : 'Back'}
+                                >
+                                    <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={locale === 'ar' ? "M14 5l7 7m0 0l-7 7m7-7H3" : "M10 19l-7-7m0 0l7-7m-7 7h18"} />
+                                    </svg>
+                                </Link>
+                            )}
                             {header && <h1 className="text-xl font-semibold text-gray-900 lg:text-white">{header}</h1>}
                         </div>
                         <div className="flex items-center gap-x-4 lg:gap-x-6">

@@ -1,7 +1,148 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, useForm } from '@inertiajs/react';
+import { useState, useEffect } from 'react';
+import ScrollToTop from '@/Components/ScrollToTop';
 
 export default function Edit({ lead, users, statuses, sources }) {
+    const [locale, setLocale] = useState(() => localStorage.getItem('crm_locale') || 'en');
+
+    useEffect(() => {
+        const handleStorageChange = () => {
+            const newLocale = localStorage.getItem('crm_locale') || 'en';
+            setLocale(newLocale);
+        };
+
+        const handleLocaleChange = () => {
+            const newLocale = localStorage.getItem('crm_locale') || 'en';
+            setLocale(newLocale);
+        };
+
+        window.addEventListener('storage', handleStorageChange);
+        window.addEventListener('localeChange', handleLocaleChange);
+
+        return () => {
+            window.removeEventListener('storage', handleStorageChange);
+            window.removeEventListener('localeChange', handleLocaleChange);
+        };
+    }, []);
+
+    const translations = {
+        en: {
+            editLead: 'Edit Lead',
+            personalInformation: 'Personal Information',
+            firstName: 'First Name',
+            lastName: 'Last Name',
+            email: 'Email',
+            mobile: 'Mobile',
+            leadRequirements: 'Lead Requirements',
+            leadRequirementsLabel: 'Lead Requirements',
+            describeRequirements: 'Describe the lead\'s specific requirements...',
+            budget: 'Budget',
+            propertyType: 'Property Type',
+            selectPropertyType: 'Select Property Type',
+            apartment: 'Apartment',
+            villa: 'Villa',
+            shop: 'Shop',
+            land: 'Land',
+            office: 'Office',
+            warehouse: 'Warehouse',
+            building: 'Building',
+            propertyCategory: 'Property Category',
+            selectPropertyCategory: 'Select Property Category',
+            residential: 'Residential',
+            commercial: 'Commercial',
+            industrial: 'Industrial',
+            agricultural: 'Agricultural',
+            noOfRooms: 'No. of Rooms',
+            noOfBathrooms: 'No. of Bathrooms',
+            asking: 'Asking',
+            selectOption: 'Select Option',
+            buy: 'Buy',
+            rent: 'Rent',
+            companyInformation: 'Company Information',
+            company: 'Company',
+            jobTitle: 'Job Title',
+            leadDetails: 'Lead Details',
+            status: 'Status',
+            source: 'Source',
+            estimatedValue: 'Estimated Value',
+            assignTo: 'Assign To',
+            unassigned: 'Unassigned',
+            lastContactDate: 'Last Contact Date',
+            addressInformation: 'Address Information',
+            address: 'Address',
+            city: 'City',
+            state: 'State',
+            postalCode: 'Postal Code',
+            country: 'Country',
+            notes: 'Notes',
+            addNotesPlaceholder: 'Add any additional notes about this lead...',
+            viewLeadDetails: 'View Lead Details',
+            cancel: 'Cancel',
+            updating: 'Updating...',
+            updateLead: 'Update Lead',
+            required: '*'
+        },
+        ar: {
+            editLead: 'تعديل العميل المحتمل',
+            personalInformation: 'المعلومات الشخصية',
+            firstName: 'الاسم الأول',
+            lastName: 'اسم العائلة',
+            email: 'البريد الإلكتروني',
+            mobile: 'الجوال',
+            leadRequirements: 'متطلبات العميل المحتمل',
+            leadRequirementsLabel: 'متطلبات العميل المحتمل',
+            describeRequirements: 'صف المتطلبات المحددة للعميل المحتمل...',
+            budget: 'الميزانية',
+            propertyType: 'نوع العقار',
+            selectPropertyType: 'اختر نوع العقار',
+            apartment: 'شقة',
+            villa: 'فيلا',
+            shop: 'محل',
+            land: 'أرض',
+            office: 'مكتب',
+            warehouse: 'مخزن',
+            building: 'مبنى',
+            propertyCategory: 'فئة العقار',
+            selectPropertyCategory: 'اختر فئة العقار',
+            residential: 'سكني',
+            commercial: 'تجاري',
+            industrial: 'صناعي',
+            agricultural: 'زراعي',
+            noOfRooms: 'عدد الغرف',
+            noOfBathrooms: 'عدد الحمامات',
+            asking: 'مطلوب',
+            selectOption: 'اختر',
+            buy: 'شراء',
+            rent: 'إيجار',
+            companyInformation: 'معلومات الشركة',
+            company: 'الشركة',
+            jobTitle: 'المسمى الوظيفي',
+            leadDetails: 'تفاصيل العميل المحتمل',
+            status: 'الحالة',
+            source: 'المصدر',
+            estimatedValue: 'القيمة المقدرة',
+            assignTo: 'تعيين إلى',
+            unassigned: 'غير معين',
+            lastContactDate: 'تاريخ آخر اتصال',
+            addressInformation: 'معلومات العنوان',
+            address: 'العنوان',
+            city: 'المدينة',
+            state: 'المحافظة',
+            postalCode: 'الرمز البريدي',
+            country: 'الدولة',
+            notes: 'ملاحظات',
+            addNotesPlaceholder: 'أضف أي ملاحظات إضافية عن هذا العميل المحتمل...',
+            viewLeadDetails: 'عرض تفاصيل العميل المحتمل',
+            cancel: 'إلغاء',
+            updating: 'جاري التحديث...',
+            updateLead: 'تحديث العميل المحتمل',
+            required: '*'
+        }
+    };
+
+    const t = translations[locale];
+
     const { data, setData, put, processing, errors } = useForm({
         first_name: lead.first_name || '',
         last_name: lead.last_name || '',
@@ -35,8 +176,8 @@ export default function Edit({ lead, users, statuses, sources }) {
     };
 
     return (
-        <AuthenticatedLayout header={`Edit Lead: ${lead.full_name}`}>
-            <Head title={`Edit Lead - ${lead.full_name}`} />
+        <AuthenticatedLayout header={`${t.editLead}: ${lead.full_name}`} backLink={route('leads.show', lead.id)}>
+            <Head title={`${t.editLead} - ${lead.full_name}`} />
 
             <div className="mx-auto max-w-4xl">
                 <div className="overflow-hidden rounded-lg bg-white shadow dark:bg-gray-800">
@@ -44,11 +185,11 @@ export default function Edit({ lead, users, statuses, sources }) {
                         <div className="p-6 space-y-6">
                             {/* Personal Information */}
                             <div>
-                                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Personal Information</h3>
+                                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">{t.personalInformation}</h3>
                                 <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                            First Name <span className="text-red-500">*</span>
+                                            {t.firstName} <span className="text-red-500">{t.required}</span>
                                         </label>
                                         <input
                                             type="text"
@@ -61,7 +202,7 @@ export default function Edit({ lead, users, statuses, sources }) {
 
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                            Last Name
+                                            {t.lastName}
                                         </label>
                                         <input
                                             type="text"
@@ -74,7 +215,7 @@ export default function Edit({ lead, users, statuses, sources }) {
 
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                            Email
+                                            {t.email}
                                         </label>
                                         <input
                                             type="email"
@@ -87,7 +228,7 @@ export default function Edit({ lead, users, statuses, sources }) {
 
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                            Mobile <span className="text-red-500">*</span>
+                                            {t.mobile} <span className="text-red-500">{t.required}</span>
                                         </label>
                                         <input
                                             type="tel"
@@ -102,23 +243,23 @@ export default function Edit({ lead, users, statuses, sources }) {
 
                             {/* Lead Requirements */}
                             <div className="border-t border-gray-200 dark:border-gray-700 pt-6">
-                                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Lead Requirements</h3>
+                                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">{t.leadRequirements}</h3>
                                 <div className="grid grid-cols-1 gap-6">
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Lead Requirements</label>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">{t.leadRequirementsLabel}</label>
                                         <textarea
                                             rows={3}
                                             value={data.requirements}
                                             onChange={(e) => setData('requirements', e.target.value)}
                                             className="mt-1 w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-                                            placeholder="Describe the lead's specific requirements..."
+                                            placeholder={t.describeRequirements}
                                         />
                                         {errors.requirements && <p className="mt-1 text-sm text-red-600">{errors.requirements}</p>}
                                     </div>
 
                                     <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Budget</label>
+                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">{t.budget}</label>
                                             <div className="relative mt-1">
                                                 <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">$</span>
                                                 <input
@@ -134,42 +275,42 @@ export default function Edit({ lead, users, statuses, sources }) {
                                         </div>
 
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Property Type</label>
+                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">{t.propertyType}</label>
                                             <select
                                                 value={data.property_type}
                                                 onChange={(e) => setData('property_type', e.target.value)}
                                                 className="mt-1 w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                                             >
-                                                <option value="">Select Property Type</option>
-                                                <option value="apartment">Apartment</option>
-                                                <option value="villa">Villa</option>
-                                                <option value="shop">Shop</option>
-                                                <option value="land">Land</option>
-                                                <option value="office">Office</option>
-                                                <option value="warehouse">Warehouse</option>
-                                                <option value="building">Building</option>
+                                                <option value="">{t.selectPropertyType}</option>
+                                                <option value="apartment">{t.apartment}</option>
+                                                <option value="villa">{t.villa}</option>
+                                                <option value="shop">{t.shop}</option>
+                                                <option value="land">{t.land}</option>
+                                                <option value="office">{t.office}</option>
+                                                <option value="warehouse">{t.warehouse}</option>
+                                                <option value="building">{t.building}</option>
                                             </select>
                                             {errors.property_type && <p className="mt-1 text-sm text-red-600">{errors.property_type}</p>}
                                         </div>
 
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Property Category</label>
+                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">{t.propertyCategory}</label>
                                             <select
                                                 value={data.property_category}
                                                 onChange={(e) => setData('property_category', e.target.value)}
                                                 className="mt-1 w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                                             >
-                                                <option value="">Select Property Category</option>
-                                                <option value="residential">Residential</option>
-                                                <option value="commercial">Commercial</option>
-                                                <option value="industrial">Industrial</option>
-                                                <option value="agricultural">Agricultural</option>
+                                                <option value="">{t.selectPropertyCategory}</option>
+                                                <option value="residential">{t.residential}</option>
+                                                <option value="commercial">{t.commercial}</option>
+                                                <option value="industrial">{t.industrial}</option>
+                                                <option value="agricultural">{t.agricultural}</option>
                                             </select>
                                             {errors.property_category && <p className="mt-1 text-sm text-red-600">{errors.property_category}</p>}
                                         </div>
 
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">No. of Rooms</label>
+                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">{t.noOfRooms}</label>
                                             <input
                                                 type="number"
                                                 min="0"
@@ -182,7 +323,7 @@ export default function Edit({ lead, users, statuses, sources }) {
                                         </div>
 
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">No. of Bathrooms</label>
+                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">{t.noOfBathrooms}</label>
                                             <input
                                                 type="number"
                                                 min="0"
@@ -195,15 +336,15 @@ export default function Edit({ lead, users, statuses, sources }) {
                                         </div>
 
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Asking</label>
+                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">{t.asking}</label>
                                             <select
                                                 value={data.asking}
                                                 onChange={(e) => setData('asking', e.target.value)}
                                                 className="mt-1 w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                                             >
-                                                <option value="">Select Option</option>
-                                                <option value="buy">Buy</option>
-                                                <option value="rent">Rent</option>
+                                                <option value="">{t.selectOption}</option>
+                                                <option value="buy">{t.buy}</option>
+                                                <option value="rent">{t.rent}</option>
                                             </select>
                                             {errors.asking && <p className="mt-1 text-sm text-red-600">{errors.asking}</p>}
                                         </div>
@@ -213,10 +354,10 @@ export default function Edit({ lead, users, statuses, sources }) {
 
                             {/* Company Information */}
                             <div className="border-t border-gray-200 dark:border-gray-700 pt-6">
-                                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Company Information</h3>
+                                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">{t.companyInformation}</h3>
                                 <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Company</label>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">{t.company}</label>
                                         <input
                                             type="text"
                                             value={data.company}
@@ -227,7 +368,7 @@ export default function Edit({ lead, users, statuses, sources }) {
                                     </div>
 
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Job Title</label>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">{t.jobTitle}</label>
                                         <input
                                             type="text"
                                             value={data.job_title}
@@ -241,11 +382,11 @@ export default function Edit({ lead, users, statuses, sources }) {
 
                             {/* Lead Details */}
                             <div className="border-t border-gray-200 dark:border-gray-700 pt-6">
-                                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Lead Details</h3>
+                                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">{t.leadDetails}</h3>
                                 <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                            Status
+                                            {t.status}
                                         </label>
                                         <select
                                             value={data.status}
@@ -263,7 +404,7 @@ export default function Edit({ lead, users, statuses, sources }) {
 
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                            Source
+                                            {t.source}
                                         </label>
                                         <select
                                             value={data.source}
@@ -280,7 +421,7 @@ export default function Edit({ lead, users, statuses, sources }) {
                                     </div>
 
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Estimated Value</label>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">{t.estimatedValue}</label>
                                         <div className="relative mt-1">
                                             <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">$</span>
                                             <input
@@ -295,13 +436,13 @@ export default function Edit({ lead, users, statuses, sources }) {
                                     </div>
 
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Assign To</label>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">{t.assignTo}</label>
                                         <select
                                             value={data.assigned_to}
                                             onChange={(e) => setData('assigned_to', e.target.value)}
                                             className="mt-1 w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                                         >
-                                            <option value="">Unassigned</option>
+                                            <option value="">{t.unassigned}</option>
                                             {users.map((user) => (
                                                 <option key={user.id} value={user.id}>
                                                     {user.name}
@@ -312,7 +453,7 @@ export default function Edit({ lead, users, statuses, sources }) {
                                     </div>
 
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Last Contact Date</label>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">{t.lastContactDate}</label>
                                         <input
                                             type="date"
                                             value={data.last_contact_date}
@@ -326,10 +467,10 @@ export default function Edit({ lead, users, statuses, sources }) {
 
                             {/* Address Information */}
                             <div className="border-t border-gray-200 dark:border-gray-700 pt-6">
-                                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Address Information</h3>
+                                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">{t.addressInformation}</h3>
                                 <div className="grid grid-cols-1 gap-6">
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Address</label>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">{t.address}</label>
                                         <input
                                             type="text"
                                             value={data.address}
@@ -341,7 +482,7 @@ export default function Edit({ lead, users, statuses, sources }) {
 
                                     <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">City</label>
+                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">{t.city}</label>
                                             <input
                                                 type="text"
                                                 value={data.city}
@@ -352,7 +493,7 @@ export default function Edit({ lead, users, statuses, sources }) {
                                         </div>
 
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">State</label>
+                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">{t.state}</label>
                                             <input
                                                 type="text"
                                                 value={data.state}
@@ -363,7 +504,7 @@ export default function Edit({ lead, users, statuses, sources }) {
                                         </div>
 
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Postal Code</label>
+                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">{t.postalCode}</label>
                                             <input
                                                 type="text"
                                                 value={data.postal_code}
@@ -374,7 +515,7 @@ export default function Edit({ lead, users, statuses, sources }) {
                                         </div>
 
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Country</label>
+                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">{t.country}</label>
                                             <input
                                                 type="text"
                                                 value={data.country}
@@ -390,13 +531,13 @@ export default function Edit({ lead, users, statuses, sources }) {
                             {/* Notes */}
                             <div className="border-t border-gray-200 dark:border-gray-700 pt-6">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Notes</label>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">{t.notes}</label>
                                     <textarea
                                         rows={4}
                                         value={data.notes}
                                         onChange={(e) => setData('notes', e.target.value)}
                                         className="mt-1 w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-                                        placeholder="Add any additional notes about this lead..."
+                                        placeholder={t.addNotesPlaceholder}
                                     />
                                     {errors.notes && <p className="mt-1 text-sm text-red-600">{errors.notes}</p>}
                                 </div>
@@ -409,14 +550,14 @@ export default function Edit({ lead, users, statuses, sources }) {
                                 href={route('leads.show', lead.id)}
                                 className="text-sm text-indigo-600 hover:text-indigo-700 dark:text-indigo-400"
                             >
-                                ← View Lead Details
+                                {locale === 'ar' ? '→' : '←'} {t.viewLeadDetails}
                             </Link>
                             <div className="flex gap-4">
                                 <Link
                                     href={route('leads.index')}
                                     className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800"
                                 >
-                                    Cancel
+                                    {t.cancel}
                                 </Link>
                                 <button
                                     type="submit"
@@ -425,18 +566,18 @@ export default function Edit({ lead, users, statuses, sources }) {
                                 >
                                     {processing ? (
                                         <>
-                                            <svg className="mr-2 h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                                            <svg className={`h-4 w-4 animate-spin ${locale === 'ar' ? 'ml-2' : 'mr-2'}`} fill="none" viewBox="0 0 24 24">
                                                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                                                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                             </svg>
-                                            Updating...
+                                            {t.updating}
                                         </>
                                     ) : (
                                         <>
-                                            <svg className="mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <svg className={`h-5 w-5 ${locale === 'ar' ? 'ml-2' : 'mr-2'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                                             </svg>
-                                            Update Lead
+                                            {t.updateLead}
                                         </>
                                     )}
                                 </button>
@@ -445,6 +586,7 @@ export default function Edit({ lead, users, statuses, sources }) {
                     </form>
                 </div>
             </div>
+            <ScrollToTop />
         </AuthenticatedLayout>
     );
 }

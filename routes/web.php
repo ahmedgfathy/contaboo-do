@@ -115,6 +115,7 @@ Route::middleware('auth')->group(function () {
     Route::resource('leads', LeadsController::class);
     Route::post('/leads/export', [LeadsController::class, 'export'])->name('leads.export');
     Route::post('/leads/import', [LeadsController::class, 'import'])->name('leads.import');
+    Route::post('/leads/{lead}/convert-to-contact', [LeadsController::class, 'convertToContact'])->name('leads.convertToContact');
     
     // Properties Routes
     Route::resource('properties', PropertiesController::class);
