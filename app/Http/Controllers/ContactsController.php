@@ -123,7 +123,7 @@ class ContactsController extends Controller
 
     public function show(Contact $contact)
     {
-        $contact->load(['createdBy', 'updatedBy', 'activities.assignedTo']);
+        $contact->load(['createdBy', 'updatedBy', 'activities.assignedTo', 'originalLead']);
 
         return Inertia::render('Contacts/Show', [
             'contact' => $contact,

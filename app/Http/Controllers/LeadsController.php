@@ -6,6 +6,7 @@ use App\Models\Lead;
 use App\Models\User;
 use App\Models\LeadAudit;
 use App\Models\SavedFilter;
+use App\Models\Contact;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\DB;
@@ -231,6 +232,67 @@ class LeadsController extends Controller
         $lead->delete();
 
         return redirect()->route('leads.index')->with('success', 'Lead deleted successfully.');
+    }
+
+    public function convertToContact(Lead $lead)
+    {
+        // Only allow conversion of qualified leads
+        if ($lead->status !== 'qualified') {
+            return redirect()->back()->with('error', 'Only qualified leads can be converted to contacts.');
+        }
+
+        // Check if already converted
+        if ($lead->is_converted) {
+            return redirect()->back()->with('error', 'This lead has already been converted to a contact.');
+        }
+
+        DB::beginTransaction();
+        try {
+            // Create contact from lead data
+            $contact = Contact::create([
+                'type' => $lead->company ? 'company' : 'individual',
+                'company_name' => $lead->company,
+                'contact_person' => $lead->full_name,
+                'email' => $lead->email,
+                'phone' => $lead->phone,
+                'mobile' => $lead->phone,
+                'address' => $lead->address,
+                'city' => $lead->city,
+                'state' => $lead->state,
+                'country' => $lead->country,
+                'postal_code' => $lead->postal_code,
+                'status' => 'active',
+                'notes' => "Converted from lead on " . now()->format('Y-m-d H:i:s') . "\n\n" . 
+                          "Original Lead Details:\n" .
+                          "Status: " . ucfirst($lead->status) . "\n" .
+                          "Source: " . ucfirst($lead->source ?? 'N/A') . "\n" .
+                          "Job Title: " . ($lead->job_title ?? 'N/A') . "\n" .
+                          "Estimated Value: " . ($lead->estimated_value ?? 'N/A') . "\n" .
+                          "Requirements: " . ($lead->requirements ?? 'N/A') . "\n" .
+                          "Budget: " . ($lead->budget ?? 'N/A') . "\n" .
+                          "Property Type: " . ($lead->property_type ?? 'N/A') . "\n" .
+                          "Property Category: " . ($lead->property_category ?? 'N/A') . "\n" .
+                          ($lead->notes ? "\nOriginal Notes:\n" . $lead->notes : ''),
+                'original_lead_id' => $lead->id,
+                'created_by' => auth()->id(),
+                'updated_by' => auth()->id(),
+            ]);
+
+            // Update lead with conversion information
+            $lead->update([
+                'is_converted' => true,
+                'converted_to_contact_id' => $contact->id,
+                'converted_at' => now(),
+            ]);
+
+            DB::commit();
+
+            return redirect()->route('contacts.show', $contact->id)
+                ->with('success', 'Lead successfully converted to contact.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()->with('error', 'Failed to convert lead: ' . $e->getMessage());
+        }
     }
 
     public function export(Request $request)
