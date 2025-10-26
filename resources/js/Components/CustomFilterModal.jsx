@@ -127,7 +127,7 @@ export default function CustomFilterModal({ show, onClose, types, statuses, list
                     onClick={onClose}
                 />
                 
-                <div className="relative w-full max-w-4xl rounded-lg bg-white shadow-xl dark:bg-gray-800">
+                <div className="relative w-full max-w-5xl rounded-lg bg-white shadow-xl dark:bg-gray-800">
                     <div className="p-6">
                         <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
                             {editingFilter ? 'Edit Custom Filter' : 'Create Custom Filter'}

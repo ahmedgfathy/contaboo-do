@@ -36,6 +36,15 @@ class ActivitiesController extends Controller
             $query->where('assigned_to', $request->assigned_to);
         }
 
+        // Filter by related entity (Lead, Property, Opportunity)
+        if ($request->filled('related_type')) {
+            $query->where('related_type', $request->related_type);
+        }
+
+        if ($request->filled('related_id')) {
+            $query->where('related_id', $request->related_id);
+        }
+
         // Filter by date range
         if ($request->filled('date_from')) {
             $query->whereDate('due_date', '>=', $request->date_from);
@@ -77,7 +86,7 @@ class ActivitiesController extends Controller
         return Inertia::render('Activities/Index', [
             'activities' => $activities,
             'stats' => $stats,
-            'filters' => $request->only(['search', 'type', 'status', 'priority', 'assigned_to', 'date_from', 'date_to', 'overdue']),
+            'filters' => $request->only(['search', 'type', 'status', 'priority', 'assigned_to', 'date_from', 'date_to', 'overdue', 'related_type', 'related_id']),
             'users' => User::select('id', 'name')->get(),
             'types' => ['call', 'email', 'meeting', 'task', 'note'],
             'statuses' => ['pending', 'in_progress', 'completed', 'cancelled'],
