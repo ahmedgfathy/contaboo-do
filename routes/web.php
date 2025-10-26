@@ -4,6 +4,11 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UserManagementController;
 use App\Http\Controllers\LeadsController;
 use App\Http\Controllers\PropertiesController;
+use App\Http\Controllers\OpportunitiesController;
+use App\Http\Controllers\ActivitiesController;
+use App\Http\Controllers\ContactsController;
+use App\Http\Controllers\SavedFiltersController;
+use App\Http\Controllers\ManagementController;
 use App\Models\Lead;
 use App\Models\LeadAudit;
 use App\Models\Property;
@@ -110,6 +115,7 @@ Route::middleware('auth')->group(function () {
     Route::resource('leads', LeadsController::class);
     Route::post('/leads/export', [LeadsController::class, 'export'])->name('leads.export');
     Route::post('/leads/import', [LeadsController::class, 'import'])->name('leads.import');
+    Route::post('/leads/{lead}/convert-to-contact', [LeadsController::class, 'convertToContact'])->name('leads.convertToContact');
     
     // Properties Routes
     Route::resource('properties', PropertiesController::class);
@@ -117,19 +123,39 @@ Route::middleware('auth')->group(function () {
     Route::post('/properties/import', [PropertiesController::class, 'import'])->name('properties.import');
     
     // Opportunities Routes
-    Route::get('/opportunities', function () {
-        return Inertia::render('Opportunities/Index');
-    })->name('opportunities.index');
+    Route::resource('opportunities', OpportunitiesController::class);
+    Route::post('/opportunities/export', [OpportunitiesController::class, 'export'])->name('opportunities.export');
+    Route::post('/opportunities/import', [OpportunitiesController::class, 'import'])->name('opportunities.import');
+    
+    // Activities Routes
+    Route::resource('activities', ActivitiesController::class);
+    Route::post('/activities/{activity}/complete', [ActivitiesController::class, 'complete'])->name('activities.complete');
+    Route::post('/activities/{activity}/uncomplete', [ActivitiesController::class, 'uncomplete'])->name('activities.uncomplete');
+    
+    // Contacts Routes
+    Route::resource('contacts', ContactsController::class);
+    Route::post('/contacts/export', [ContactsController::class, 'export'])->name('contacts.export');
+    Route::get('/api/contacts/search-by-phone', [ContactsController::class, 'searchByPhone'])->name('contacts.searchByPhone');
+    Route::post('/api/contacts/quick-create', [ContactsController::class, 'quickCreate'])->name('contacts.quickCreate');
     
     // Reports Routes
     Route::get('/reports', function () {
         return Inertia::render('Reports/Index');
     })->name('reports.index');
     
+    // Management Routes
+    Route::get('/management', [ManagementController::class, 'index'])->name('management.index');
+    
     // User Management Routes
     Route::get('/users', [UserManagementController::class, 'index'])->name('users.index');
     Route::patch('/users/{user}/role', [UserManagementController::class, 'updateRole'])->name('users.updateRole');
     Route::delete('/users/{user}', [UserManagementController::class, 'destroy'])->name('users.destroy');
+    
+    // Saved Filters Routes
+    Route::get('/api/saved-filters', [SavedFiltersController::class, 'index'])->name('saved-filters.index');
+    Route::post('/api/saved-filters', [SavedFiltersController::class, 'store'])->name('saved-filters.store');
+    Route::put('/api/saved-filters/{savedFilter}', [SavedFiltersController::class, 'update'])->name('saved-filters.update');
+    Route::delete('/api/saved-filters/{savedFilter}', [SavedFiltersController::class, 'destroy'])->name('saved-filters.destroy');
 });
 
 require __DIR__.'/auth.php';

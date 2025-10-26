@@ -5,9 +5,11 @@ namespace App\Http\Controllers;
 use App\Models\Property;
 use App\Models\User;
 use App\Models\PropertyAudit;
+use App\Models\SavedFilter;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 
@@ -82,9 +84,44 @@ class PropertiesController extends Controller
 
         $users = User::select('id', 'name')->get();
 
+        // Get saved filters
+        $savedFilters = SavedFilter::accessibleBy(Auth::id())
+            ->where('module', 'properties')
+            ->with('user:id,name')
+            ->orderBy('name')
+            ->get();
+
+        // Calculate statistics
+        $stats = [
+            'total_properties' => Property::count(),
+            'for_sale' => Property::where('listing_type', 'sale')->count(),
+            'for_rent' => Property::where('listing_type', 'rent')->count(),
+            'sold' => Property::where('status', 'sold')->count(),
+        ];
+
+        // Available columns for custom filters
+        $availableColumns = [
+            ['value' => 'title', 'label' => 'Title'],
+            ['value' => 'type', 'label' => 'Type'],
+            ['value' => 'status', 'label' => 'Status'],
+            ['value' => 'listing_type', 'label' => 'Listing Type'],
+            ['value' => 'price', 'label' => 'Price'],
+            ['value' => 'area', 'label' => 'Area'],
+            ['value' => 'bedrooms', 'label' => 'Bedrooms'],
+            ['value' => 'bathrooms', 'label' => 'Bathrooms'],
+            ['value' => 'city', 'label' => 'City'],
+            ['value' => 'country', 'label' => 'Country'],
+            ['value' => 'reference_number', 'label' => 'Reference Number'],
+            ['value' => 'assigned_to', 'label' => 'Assigned To'],
+            ['value' => 'created_at', 'label' => 'Created At'],
+        ];
+
         return Inertia::render('Properties/Index', [
             'properties' => $properties,
             'users' => $users,
+            'stats' => $stats,
+            'savedFilters' => $savedFilters,
+            'availableColumns' => $availableColumns,
             'filters' => $request->only(['search', 'type', 'status', 'listing_type', 'assigned_to', 'price_min', 'price_max', 'bedrooms', 'date_from', 'date_to']),
             'types' => ['apartment', 'house', 'villa', 'townhouse', 'studio', 'penthouse', 'duplex', 'land', 'commercial', 'office'],
             'statuses' => ['available', 'sold', 'rented', 'pending', 'off_market'],
@@ -132,6 +169,7 @@ class PropertiesController extends Controller
             'longitude' => 'nullable|numeric|between:-180,180',
             'reference_number' => 'nullable|string|unique:properties,reference_number',
             'notes' => 'nullable|string',
+            'owner_id' => 'nullable|exists:contacts,id',
             'assigned_to' => 'nullable|exists:users,id',
         ]);
 
@@ -155,7 +193,7 @@ class PropertiesController extends Controller
 
     public function show(Property $property)
     {
-        $property->load(['assignedTo', 'createdBy', 'updatedBy', 'audits.user']);
+        $property->load(['owner', 'assignedTo', 'createdBy', 'updatedBy', 'audits.user']);
         
         return Inertia::render('Properties/Show', [
             'property' => $property,
@@ -204,6 +242,7 @@ class PropertiesController extends Controller
             'longitude' => 'nullable|numeric|between:-180,180',
             'reference_number' => ['nullable', 'string', Rule::unique('properties')->ignore($property->id)],
             'notes' => 'nullable|string',
+            'owner_id' => 'nullable|exists:contacts,id',
             'assigned_to' => 'nullable|exists:users,id',
         ]);
 

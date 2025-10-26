@@ -5,9 +5,12 @@ namespace App\Http\Controllers;
 use App\Models\Lead;
 use App\Models\User;
 use App\Models\LeadAudit;
+use App\Models\SavedFilter;
+use App\Models\Contact;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 
 class LeadsController extends Controller
@@ -61,14 +64,54 @@ class LeadsController extends Controller
         $sortDirection = $request->get('sort_direction', 'desc');
         $query->orderBy($sortField, $sortDirection);
 
-        $leads = $query->paginate(15)->withQueryString();
+        // Get per_page from request, session, or default to 15
+        $perPage = $request->get('per_page', session('leads_per_page', 15));
+        
+        // Store per_page in session for persistence
+        if ($request->filled('per_page')) {
+            session(['leads_per_page' => $perPage]);
+        }
+
+        $leads = $query->paginate($perPage)->withQueryString();
 
         $users = User::select('id', 'name')->get();
+
+        // Calculate statistics
+        $stats = [
+            'total_leads' => Lead::count(),
+            'new_leads' => Lead::where('status', 'new')->count(),
+            'contacted_leads' => Lead::where('status', 'contacted')->count(),
+            'qualified_leads' => Lead::where('status', 'qualified')->count(),
+        ];
+
+        // Get saved filters for this module
+        $savedFilters = SavedFilter::accessibleBy(Auth::id())
+            ->where('module', 'leads')
+            ->orderBy('name')
+            ->get();
+
+        // Available columns for filtering
+        $availableColumns = [
+            ['value' => 'first_name', 'label' => 'First Name'],
+            ['value' => 'last_name', 'label' => 'Last Name'],
+            ['value' => 'email', 'label' => 'Email'],
+            ['value' => 'phone', 'label' => 'Phone'],
+            ['value' => 'company', 'label' => 'Company'],
+            ['value' => 'job_title', 'label' => 'Job Title'],
+            ['value' => 'status', 'label' => 'Status'],
+            ['value' => 'source', 'label' => 'Source'],
+            ['value' => 'city', 'label' => 'City'],
+            ['value' => 'assigned_to', 'label' => 'Assigned To'],
+            ['value' => 'created_at', 'label' => 'Created Date'],
+        ];
 
         return Inertia::render('Leads/Index', [
             'leads' => $leads,
             'users' => $users,
-            'filters' => $request->only(['search', 'status', 'source', 'assigned_to', 'date_from', 'date_to']),
+            'stats' => $stats,
+            'savedFilters' => $savedFilters,
+            'availableColumns' => $availableColumns,
+            'filters' => $request->only(['search', 'status', 'source', 'assigned_to', 'date_from', 'date_to', 'per_page']),
             'statuses' => ['new', 'contacted', 'qualified', 'proposal', 'negotiation', 'won', 'lost'],
             'sources' => ['website', 'referral', 'social_media', 'email_campaign', 'cold_call', 'trade_show', 'partner', 'other'],
         ]);
@@ -89,13 +132,13 @@ class LeadsController extends Controller
     {
         $validated = $request->validate([
             'first_name' => 'required|string|max:255',
-            'last_name' => 'required|string|max:255',
-            'email' => 'required|email|unique:leads,email',
-            'phone' => 'nullable|string|max:255',
+            'last_name' => 'nullable|string|max:255',
+            'email' => 'nullable|email|unique:leads,email',
+            'phone' => 'required|string|max:255',
             'company' => 'nullable|string|max:255',
             'job_title' => 'nullable|string|max:255',
-            'status' => 'required|in:new,contacted,qualified,proposal,negotiation,won,lost',
-            'source' => 'required|in:website,referral,social_media,email_campaign,cold_call,trade_show,partner,other',
+            'status' => 'nullable|in:new,contacted,qualified,proposal,negotiation,won,lost',
+            'source' => 'nullable|in:website,referral,social_media,email_campaign,cold_call,trade_show,partner,other',
             'estimated_value' => 'nullable|numeric|min:0',
             'notes' => 'nullable|string',
             'address' => 'nullable|string|max:255',
@@ -105,10 +148,22 @@ class LeadsController extends Controller
             'postal_code' => 'nullable|string|max:255',
             'assigned_to' => 'nullable|exists:users,id',
             'last_contact_date' => 'nullable|date',
+            'requirements' => 'nullable|string',
+            'budget' => 'nullable|numeric|min:0',
+            'property_type' => 'nullable|in:apartment,villa,shop,land,office,warehouse,building',
+            'property_category' => 'nullable|in:residential,commercial,industrial,agricultural',
+            'no_of_rooms' => 'nullable|integer|min:0',
+            'no_of_bathrooms' => 'nullable|integer|min:0',
+            'asking' => 'nullable|in:buy,rent',
         ]);
 
         $validated['created_by'] = auth()->id();
         $validated['updated_by'] = auth()->id();
+        
+        // Set default assigned_to to current user if not provided
+        if (!isset($validated['assigned_to'])) {
+            $validated['assigned_to'] = auth()->id();
+        }
 
         $lead = Lead::create($validated);
 
@@ -140,13 +195,13 @@ class LeadsController extends Controller
     {
         $validated = $request->validate([
             'first_name' => 'required|string|max:255',
-            'last_name' => 'required|string|max:255',
-            'email' => ['required', 'email', Rule::unique('leads')->ignore($lead->id)],
-            'phone' => 'nullable|string|max:255',
+            'last_name' => 'nullable|string|max:255',
+            'email' => ['nullable', 'email', Rule::unique('leads')->ignore($lead->id)],
+            'phone' => 'required|string|max:255',
             'company' => 'nullable|string|max:255',
             'job_title' => 'nullable|string|max:255',
-            'status' => 'required|in:new,contacted,qualified,proposal,negotiation,won,lost',
-            'source' => 'required|in:website,referral,social_media,email_campaign,cold_call,trade_show,partner,other',
+            'status' => 'nullable|in:new,contacted,qualified,proposal,negotiation,won,lost',
+            'source' => 'nullable|in:website,referral,social_media,email_campaign,cold_call,trade_show,partner,other',
             'estimated_value' => 'nullable|numeric|min:0',
             'notes' => 'nullable|string',
             'address' => 'nullable|string|max:255',
@@ -156,6 +211,13 @@ class LeadsController extends Controller
             'postal_code' => 'nullable|string|max:255',
             'assigned_to' => 'nullable|exists:users,id',
             'last_contact_date' => 'nullable|date',
+            'requirements' => 'nullable|string',
+            'budget' => 'nullable|numeric|min:0',
+            'property_type' => 'nullable|in:apartment,villa,shop,land,office,warehouse,building',
+            'property_category' => 'nullable|in:residential,commercial,industrial,agricultural',
+            'no_of_rooms' => 'nullable|integer|min:0',
+            'no_of_bathrooms' => 'nullable|integer|min:0',
+            'asking' => 'nullable|in:buy,rent',
         ]);
 
         $validated['updated_by'] = auth()->id();
@@ -170,6 +232,67 @@ class LeadsController extends Controller
         $lead->delete();
 
         return redirect()->route('leads.index')->with('success', 'Lead deleted successfully.');
+    }
+
+    public function convertToContact(Lead $lead)
+    {
+        // Only allow conversion of qualified leads
+        if ($lead->status !== 'qualified') {
+            return redirect()->back()->with('error', 'Only qualified leads can be converted to contacts.');
+        }
+
+        // Check if already converted
+        if ($lead->is_converted) {
+            return redirect()->back()->with('error', 'This lead has already been converted to a contact.');
+        }
+
+        DB::beginTransaction();
+        try {
+            // Create contact from lead data
+            $contact = Contact::create([
+                'type' => $lead->company ? 'company' : 'individual',
+                'company_name' => $lead->company,
+                'contact_person' => $lead->full_name,
+                'email' => $lead->email,
+                'phone' => $lead->phone,
+                'mobile' => $lead->phone,
+                'address' => $lead->address,
+                'city' => $lead->city,
+                'state' => $lead->state,
+                'country' => $lead->country,
+                'postal_code' => $lead->postal_code,
+                'status' => 'active',
+                'notes' => "Converted from lead on " . now()->format('Y-m-d H:i:s') . "\n\n" . 
+                          "Original Lead Details:\n" .
+                          "Status: " . ucfirst($lead->status) . "\n" .
+                          "Source: " . ucfirst($lead->source ?? 'N/A') . "\n" .
+                          "Job Title: " . ($lead->job_title ?? 'N/A') . "\n" .
+                          "Estimated Value: " . ($lead->estimated_value ?? 'N/A') . "\n" .
+                          "Requirements: " . ($lead->requirements ?? 'N/A') . "\n" .
+                          "Budget: " . ($lead->budget ?? 'N/A') . "\n" .
+                          "Property Type: " . ($lead->property_type ?? 'N/A') . "\n" .
+                          "Property Category: " . ($lead->property_category ?? 'N/A') . "\n" .
+                          ($lead->notes ? "\nOriginal Notes:\n" . $lead->notes : ''),
+                'original_lead_id' => $lead->id,
+                'created_by' => auth()->id(),
+                'updated_by' => auth()->id(),
+            ]);
+
+            // Update lead with conversion information
+            $lead->update([
+                'is_converted' => true,
+                'converted_to_contact_id' => $contact->id,
+                'converted_at' => now(),
+            ]);
+
+            DB::commit();
+
+            return redirect()->route('contacts.show', $contact->id)
+                ->with('success', 'Lead successfully converted to contact.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()->with('error', 'Failed to convert lead: ' . $e->getMessage());
+        }
     }
 
     public function export(Request $request)
