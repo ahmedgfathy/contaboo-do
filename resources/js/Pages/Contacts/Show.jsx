@@ -1,5 +1,6 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link } from '@inertiajs/react';
+import ScrollToTop from '@/Components/ScrollToTop';
 
 export default function ShowContact({ contact }) {
     const formatDate = (dateString) => {
@@ -193,6 +194,7 @@ export default function ShowContact({ contact }) {
                     </div>
                 </div>
             </div>
+            <ScrollToTop />
         </AuthenticatedLayout>
     );
 }

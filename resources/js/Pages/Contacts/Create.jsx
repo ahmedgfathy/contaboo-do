@@ -1,6 +1,7 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { useState } from 'react';
+import ScrollToTop from '@/Components/ScrollToTop';
 
 export default function CreateProperty({ users, types, statuses, listing_types }) {
     const { data, setData, post, processing, errors } = useForm({
@@ -601,6 +602,7 @@ export default function CreateProperty({ users, types, statuses, listing_types }
                     </div>
                 </form>
             </div>
+            <ScrollToTop />
         </AuthenticatedLayout>
     );
 }

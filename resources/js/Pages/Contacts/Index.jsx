@@ -1,7 +1,9 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, router, useForm } from '@inertiajs/react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import CustomFilterModal from '@/Components/CustomFilterModal';
+import Pagination from '@/Components/Pagination';
+import ScrollToTop from '@/Components/ScrollToTop';
 import axios from 'axios';
 
 export default function ContactsIndex({ contacts, types, statuses, filters, stats, savedFilters = [], availableColumns = [] }) {
@@ -12,23 +14,36 @@ export default function ContactsIndex({ contacts, types, statuses, filters, stat
     const [selectedFilter, setSelectedFilter] = useState(null);
     const [editingFilter, setEditingFilter] = useState(null);
     const [visibleColumns, setVisibleColumns] = useState([]);
+    const [perPage, setPerPage] = useState(contacts.per_page || 15);
+    const initialRender = useRef(true);
 
     const searchForm = useForm({
         search: filters.search || '',
         type: filters.type || '',
         status: filters.status || '',
-        assigned_to: filters.assigned_to || '',
-        value_min: filters.value_min || '',
-        value_max: filters.value_max || '',
-        bedrooms: filters.bedrooms || '',
-        date_from: filters.date_from || '',
-        date_to: filters.date_to || '',
+        country: filters.country || '',
     });
+
+    // Helper function to remove empty parameters from data
+    const getCleanParams = (data) => {
+        const cleanData = {};
+        Object.keys(data).forEach(key => {
+            if (data[key] && data[key] !== '') {
+                cleanData[key] = data[key];
+            }
+        });
+        return cleanData;
+    };
 
     // Auto-submit search with debounce
     useEffect(() => {
+        if (initialRender.current) {
+            initialRender.current = false;
+            return;
+        }
+
         const timer = setTimeout(() => {
-            router.get(route('contacts.index'), searchForm.data, {
+            router.get(route('contacts.index'), getCleanParams({ ...searchForm.data, per_page: perPage }), {
                 preserveState: true,
                 preserveScroll: true,
             });
@@ -39,19 +54,29 @@ export default function ContactsIndex({ contacts, types, statuses, filters, stat
 
     // Auto-submit filters immediately when changed
     useEffect(() => {
-        if (filters.type !== undefined || filters.status !== undefined || filters.type !== undefined || filters.assigned_to !== undefined || filters.value_min !== undefined || filters.value_max !== undefined || filters.bedrooms !== undefined || filters.date_from !== undefined || filters.date_to !== undefined) {
-            router.get(route('contacts.index'), searchForm.data, {
-                preserveState: true,
-                preserveScroll: true,
-            });
+        if (initialRender.current) {
+            return;
         }
-    }, [searchForm.data.type, searchForm.data.status, searchForm.data.type, searchForm.data.assigned_to, searchForm.data.value_min, searchForm.data.value_max, searchForm.data.bedrooms, searchForm.data.date_from, searchForm.data.date_to]);
+
+        router.get(route('contacts.index'), getCleanParams({ ...searchForm.data, per_page: perPage }), {
+            preserveState: true,
+            preserveScroll: true,
+        });
+    }, [searchForm.data.type, searchForm.data.status, searchForm.data.country]);
 
     const handleReset = () => {
         searchForm.reset();
         router.get(route('contacts.index'), {}, {
             preserveState: false,
             preserveScroll: false,
+        });
+    };
+
+    const handlePerPageChange = (newPerPage) => {
+        setPerPage(newPerPage);
+        router.get(route('contacts.index'), getCleanParams({ ...searchForm.data, per_page: newPerPage }), {
+            preserveState: true,
+            preserveScroll: true,
         });
     };
 
@@ -62,7 +87,7 @@ export default function ContactsIndex({ contacts, types, statuses, filters, stat
     };
 
     const handleExport = () => {
-        router.post(route('contacts.export'), searchForm.data, {
+        router.post(route('contacts.export'), getCleanParams(searchForm.data), {
             preserveState: true,
             preserveScroll: true,
         });
@@ -113,7 +138,7 @@ export default function ContactsIndex({ contacts, types, statuses, filters, stat
             }
         });
         
-        router.get(route('contacts.index'), newData, {
+        router.get(route('contacts.index'), getCleanParams({ ...newData, per_page: perPage }), {
             preserveState: true,
             preserveScroll: true,
         });
@@ -515,30 +540,46 @@ export default function ContactsIndex({ contacts, types, statuses, filters, stat
                         <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                             <thead className="bg-gray-50 dark:bg-gray-900">
                                 <tr>
-                                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
-                                        Property
-                                    </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
-                                        Type
-                                    </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
-                                        Status
-                                    </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
-                                        Listing
-                                    </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
-                                        Location
-                                    </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
-                                        Details
-                                    </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
-                                        Price
-                                    </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
-                                        Assigned To
-                                    </th>
+                                    {isColumnVisible('company_name') && (
+                                        <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                                            Company Name
+                                        </th>
+                                    )}
+                                    {isColumnVisible('contact_person') && (
+                                        <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                                            Contact Person
+                                        </th>
+                                    )}
+                                    {isColumnVisible('email') && (
+                                        <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                                            Email
+                                        </th>
+                                    )}
+                                    {isColumnVisible('phone') && (
+                                        <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                                            Phone
+                                        </th>
+                                    )}
+                                    {isColumnVisible('type') && (
+                                        <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                                            Type
+                                        </th>
+                                    )}
+                                    {isColumnVisible('status') && (
+                                        <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                                            Status
+                                        </th>
+                                    )}
+                                    {isColumnVisible('city') && (
+                                        <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                                            City
+                                        </th>
+                                    )}
+                                    {isColumnVisible('country') && (
+                                        <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                                            Country
+                                        </th>
+                                    )}
                                     <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
                                         Actions
                                     </th>
@@ -549,7 +590,7 @@ export default function ContactsIndex({ contacts, types, statuses, filters, stat
                                     <tr>
                                         <td colSpan="9" className="px-6 py-12 text-center">
                                             <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                                             </svg>
                                             <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">No contacts found. Create your first contact!</p>
                                         </td>
@@ -557,46 +598,56 @@ export default function ContactsIndex({ contacts, types, statuses, filters, stat
                                 ) : (
                                     contacts.data.map((contact) => (
                                         <tr key={contact.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
-                                            <td className="whitespace-nowrap px-6 py-4">
-                                                <div className="text-sm font-medium text-gray-900 dark:text-white">
-                                                    {contact.title}
-                                                </div>
-                                                {contact.reference_number && (
-                                                    <div className="text-sm text-gray-500 dark:text-gray-400">
-                                                        Ref: {contact.reference_number}
+                                            {isColumnVisible('company_name') && (
+                                                <td className="whitespace-nowrap px-6 py-4">
+                                                    <div className="text-sm font-medium text-gray-900 dark:text-white">
+                                                        {contact.company_name || 'N/A'}
                                                     </div>
-                                                )}
-                                            </td>
-                                            <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-900 dark:text-white">
-                                                {getTypeLabel(contact.type)}
-                                            </td>
-                                            <td className="whitespace-nowrap px-6 py-4">
-                                                <span className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${getStatusColor(contact.status)}`}>
-                                                    {contact.status.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
-                                                </span>
-                                            </td>
-                                            <td className="whitespace-nowrap px-6 py-4">
-                                                <span className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${getListingTypeColor(contact.type)}`}>
-                                                    {contact.type.charAt(0).toUpperCase() + contact.type.slice(1)}
-                                                </span>
-                                            </td>
-                                            <td className="whitespace-nowrap px-6 py-4">
-                                                <div className="text-sm text-gray-900 dark:text-white">{contact.city}</div>
-                                                <div className="text-sm text-gray-500 dark:text-gray-400">{contact.country}</div>
-                                            </td>
-                                            <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
-                                                {contact.bedrooms && `${contact.bedrooms} bed`}
-                                                {contact.bedrooms && contact.bathrooms && ' • '}
-                                                {contact.bathrooms && `${contact.bathrooms} bath`}
-                                                {(contact.bedrooms || contact.bathrooms) && contact.area && ' • '}
-                                                {contact.area && `${contact.area} m²`}
-                                            </td>
-                                            <td className="whitespace-nowrap px-6 py-4 text-sm font-semibold text-gray-900 dark:text-white">
-                                                ${parseFloat(contact.value).toLocaleString()}
-                                            </td>
-                                            <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-900 dark:text-white">
-                                                {contact.assigned_to?.name || 'Unassigned'}
-                                            </td>
+                                                </td>
+                                            )}
+                                            {isColumnVisible('contact_person') && (
+                                                <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-900 dark:text-white">
+                                                    {contact.contact_person || 'N/A'}
+                                                </td>
+                                            )}
+                                            {isColumnVisible('email') && (
+                                                <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-900 dark:text-white">
+                                                    {contact.email ? (
+                                                        <a href={`mailto:${contact.email}`} className="text-indigo-600 hover:text-indigo-700 dark:text-indigo-400">
+                                                            {contact.email}
+                                                        </a>
+                                                    ) : 'N/A'}
+                                                </td>
+                                            )}
+                                            {isColumnVisible('phone') && (
+                                                <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-900 dark:text-white">
+                                                    {contact.phone || 'N/A'}
+                                                </td>
+                                            )}
+                                            {isColumnVisible('type') && (
+                                                <td className="whitespace-nowrap px-6 py-4">
+                                                    <span className="inline-flex rounded-full px-2 py-1 text-xs font-semibold bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400">
+                                                        {getTypeLabel(contact.type)}
+                                                    </span>
+                                                </td>
+                                            )}
+                                            {isColumnVisible('status') && (
+                                                <td className="whitespace-nowrap px-6 py-4">
+                                                    <span className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${contact.status === 'active' ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'}`}>
+                                                        {contact.status.charAt(0).toUpperCase() + contact.status.slice(1)}
+                                                    </span>
+                                                </td>
+                                            )}
+                                            {isColumnVisible('city') && (
+                                                <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-900 dark:text-white">
+                                                    {contact.city || 'N/A'}
+                                                </td>
+                                            )}
+                                            {isColumnVisible('country') && (
+                                                <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-900 dark:text-white">
+                                                    {contact.country || 'N/A'}
+                                                </td>
+                                            )}
                                             <td className="whitespace-nowrap px-6 py-4 text-right text-sm font-medium">
                                                 <div className="flex items-center justify-end gap-2">
                                                     <Link
@@ -635,58 +686,18 @@ export default function ContactsIndex({ contacts, types, statuses, filters, stat
                             </tbody>
                         </table>
                     </div>
-                </div>
 
-                {/* Pagination */}
-                {contacts.links.length > 3 && (
-                    <div className="flex items-center justify-between rounded-lg border-t border-gray-200 bg-white px-4 py-3 dark:border-gray-700 dark:bg-gray-800 sm:px-6">
-                        <div className="flex flex-1 justify-between sm:hidden">
-                            {contacts.prev_page_url && (
-                                <Link
-                                    href={contacts.prev_page_url}
-                                    className="relative inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
-                                >
-                                    Previous
-                                </Link>
-                            )}
-                            {contacts.next_page_url && (
-                                <Link
-                                    href={contacts.next_page_url}
-                                    className="relative ml-3 inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
-                                >
-                                    Next
-                                </Link>
-                            )}
-                        </div>
-                        <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
-                            <div>
-                                <p className="text-sm text-gray-700 dark:text-gray-300">
-                                    Showing <span className="font-medium">{contacts.from}</span> to <span className="font-medium">{contacts.to}</span> of{' '}
-                                    <span className="font-medium">{contacts.total}</span> results
-                                </p>
-                            </div>
-                            <div>
-                                <nav className="isolate inline-flex -space-x-px rounded-md shadow-sm">
-                                    {contacts.links.map((link, index) => (
-                                        <Link
-                                            key={index}
-                                            href={link.url || '#'}
-                                            className={`relative inline-flex items-center px-4 py-2 text-sm font-medium ${
-                                                link.active
-                                                    ? 'z-10 bg-indigo-600 text-white'
-                                                    : 'bg-white text-gray-700 hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700'
-                                            } ${index === 0 ? 'rounded-l-md' : ''} ${
-                                                index === contacts.links.length - 1 ? 'rounded-r-md' : ''
-                                            } border border-gray-300 dark:border-gray-600`}
-                                            dangerouslySetInnerHTML={{ __html: link.label }}
-                                        />
-                                    ))}
-                                </nav>
-                            </div>
-                        </div>
-                    </div>
-                )}
+                    {/* Pagination */}
+                    <Pagination
+                        links={contacts.links}
+                        from={contacts.from}
+                        to={contacts.to}
+                        total={contacts.total}
+                        perPage={perPage}
+                        onPerPageChange={handlePerPageChange}
+                    />
                 </div>
+            </div>
 
             {/* Import Modal */}
             {showImportModal && (
@@ -746,6 +757,9 @@ export default function ContactsIndex({ contacts, types, statuses, filters, stat
                 editingFilter={editingFilter}
                 module="contacts"
             />
+
+            {/* Scroll to Top Button */}
+            <ScrollToTop />
             </div>
         </AuthenticatedLayout>
     );

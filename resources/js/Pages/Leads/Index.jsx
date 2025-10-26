@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import CustomFilterModal from '@/Components/CustomFilterModal';
 import Pagination from '@/Components/Pagination';
 import ScrollToTop from '@/Components/ScrollToTop';
+import ConfirmationModal from '@/Components/ConfirmationModal';
 import axios from 'axios';
 
 export default function LeadsIndex({ leads, users, filters, statuses, sources, stats, savedFilters = [], availableColumns = [] }) {
@@ -17,6 +18,8 @@ export default function LeadsIndex({ leads, users, filters, statuses, sources, s
     const [editingFilter, setEditingFilter] = useState(null);
     const [visibleColumns, setVisibleColumns] = useState([]);
     const [perPage, setPerPage] = useState(leads.per_page || 15);
+    const [showConvertModal, setShowConvertModal] = useState(false);
+    const [leadToConvert, setLeadToConvert] = useState(null);
     const initialRender = useRef(true);
 
     // Listen for locale changes
@@ -214,9 +217,21 @@ export default function LeadsIndex({ leads, users, filters, statuses, sources, s
     };
 
     const handleConvertToContact = (lead) => {
-        if (confirm(t.convertToContactConfirm)) {
-            router.post(route('leads.convertToContact', lead.id), {}, {
+        setLeadToConvert(lead);
+        setShowConvertModal(true);
+    };
+
+    const confirmConvertToContact = () => {
+        if (leadToConvert) {
+            router.post(route('leads.convertToContact', leadToConvert.id), {}, {
                 preserveScroll: true,
+                onSuccess: () => {
+                    setLeadToConvert(null);
+                },
+                onError: (errors) => {
+                    console.error('Conversion error:', errors);
+                    setLeadToConvert(null);
+                }
             });
         }
     };
@@ -944,6 +959,22 @@ export default function LeadsIndex({ leads, users, filters, statuses, sources, s
                 availableColumns={availableColumns}
                 editingFilter={editingFilter}
                 module="leads"
+            />
+
+            {/* Confirmation Modal for Lead Conversion */}
+            <ConfirmationModal
+                show={showConvertModal}
+                onClose={() => {
+                    setShowConvertModal(false);
+                    setLeadToConvert(null);
+                }}
+                onConfirm={confirmConvertToContact}
+                title={t.convertToContact}
+                message={t.convertToContactConfirm}
+                confirmText={t.convertToContact}
+                cancelText={t.cancel}
+                confirmColor="green"
+                icon="user"
             />
 
             {/* Scroll to Top Button */}

@@ -250,7 +250,7 @@ class LeadsController extends Controller
         try {
             // Create contact from lead data
             $contact = Contact::create([
-                'type' => $lead->company ? 'company' : 'individual',
+                'type' => $lead->company ? 'client' : 'client', // Default to client
                 'company_name' => $lead->company,
                 'contact_person' => $lead->full_name,
                 'email' => $lead->email,
