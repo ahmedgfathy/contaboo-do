@@ -2,7 +2,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, router, useForm } from '@inertiajs/react';
 import { useState, useEffect } from 'react';
 
-export default function ActivitiesIndex({ activities, types, statuses, priorities, users, filters }) {
+export default function ActivitiesIndex({ activities, types, statuses, priorities, users, filters, stats }) {
     const [showFilters, setShowFilters] = useState(false);
     const [importFile, setImportFile] = useState(null);
     const [showImportModal, setShowImportModal] = useState(false);
@@ -26,7 +26,6 @@ export default function ActivitiesIndex({ activities, types, statuses, prioritie
         search: filters.search || '',
         type: filters.type || '',
         status: filters.status || '',
-        type: filters.type || '',
         assigned_to: filters.assigned_to || '',
         value_min: filters.value_min || '',
         value_max: filters.value_max || '',
@@ -122,6 +121,95 @@ export default function ActivitiesIndex({ activities, types, statuses, prioritie
             <Head title="Activities" />
 
             <div className="space-y-6">
+                {/* Statistics Cards */}
+                {stats && (
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                        {/* Total Activities Card */}
+                        <div className="overflow-hidden rounded-lg bg-white shadow dark:bg-gray-800">
+                            <div className="p-5">
+                                <div className="flex items-center">
+                                    <div className="flex-shrink-0">
+                                        <div className="flex h-12 w-12 items-center justify-center rounded-md bg-indigo-500">
+                                            <svg className="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                                            </svg>
+                                        </div>
+                                    </div>
+                                    <div className="ml-5 w-0 flex-1">
+                                        <dl>
+                                            <dt className="truncate text-sm font-medium text-gray-500 dark:text-gray-400">Total Activities</dt>
+                                            <dd className="text-3xl font-semibold text-gray-900 dark:text-white">{stats.total_activities}</dd>
+                                        </dl>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Pending Activities Card */}
+                        <div className="overflow-hidden rounded-lg bg-white shadow dark:bg-gray-800">
+                            <div className="p-5">
+                                <div className="flex items-center">
+                                    <div className="flex-shrink-0">
+                                        <div className="flex h-12 w-12 items-center justify-center rounded-md bg-yellow-500">
+                                            <svg className="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            </svg>
+                                        </div>
+                                    </div>
+                                    <div className="ml-5 w-0 flex-1">
+                                        <dl>
+                                            <dt className="truncate text-sm font-medium text-gray-500 dark:text-gray-400">Pending</dt>
+                                            <dd className="text-3xl font-semibold text-gray-900 dark:text-white">{stats.pending_activities}</dd>
+                                        </dl>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* In Progress Activities Card */}
+                        <div className="overflow-hidden rounded-lg bg-white shadow dark:bg-gray-800">
+                            <div className="p-5">
+                                <div className="flex items-center">
+                                    <div className="flex-shrink-0">
+                                        <div className="flex h-12 w-12 items-center justify-center rounded-md bg-blue-500">
+                                            <svg className="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                            </svg>
+                                        </div>
+                                    </div>
+                                    <div className="ml-5 w-0 flex-1">
+                                        <dl>
+                                            <dt className="truncate text-sm font-medium text-gray-500 dark:text-gray-400">In Progress</dt>
+                                            <dd className="text-3xl font-semibold text-gray-900 dark:text-white">{stats.in_progress_activities}</dd>
+                                        </dl>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Completed Activities Card */}
+                        <div className="overflow-hidden rounded-lg bg-white shadow dark:bg-gray-800">
+                            <div className="p-5">
+                                <div className="flex items-center">
+                                    <div className="flex-shrink-0">
+                                        <div className="flex h-12 w-12 items-center justify-center rounded-md bg-green-500">
+                                            <svg className="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            </svg>
+                                        </div>
+                                    </div>
+                                    <div className="ml-5 w-0 flex-1">
+                                        <dl>
+                                            <dt className="truncate text-sm font-medium text-gray-500 dark:text-gray-400">Completed</dt>
+                                            <dd className="text-3xl font-semibold text-gray-900 dark:text-white">{stats.completed_activities}</dd>
+                                        </dl>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
                 {/* Header Actions */}
                 <div className="flex flex-wrap items-center justify-between gap-4">
                     <div className="flex items-center gap-4">
@@ -448,20 +536,30 @@ export default function ActivitiesIndex({ activities, types, statuses, prioritie
                                                     <Link
                                                         href={route('activities.show', activity.id)}
                                                         className="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300"
+                                                        title="View"
                                                     >
-                                                        View
+                                                        <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                                        </svg>
                                                     </Link>
                                                     <Link
                                                         href={route('activities.edit', activity.id)}
                                                         className="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300"
+                                                        title="Edit"
                                                     >
-                                                        Edit
+                                                        <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                                        </svg>
                                                     </Link>
                                                     <button
                                                         onClick={() => handleDelete(activity.id)}
                                                         className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
+                                                        title="Delete"
                                                     >
-                                                        Delete
+                                                        <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                        </svg>
                                                     </button>
                                                 </div>
                                             </td>
@@ -620,14 +718,23 @@ export default function ActivitiesIndex({ activities, types, statuses, prioritie
                                         <div className="flex gap-2">
                                             <Link
                                                 href={route('activities.show', activity.id)}
-                                                className="flex-1 rounded-lg bg-indigo-600 py-2 text-center text-sm font-semibold text-white hover:bg-indigo-700"
+                                                className="flex-1 flex items-center justify-center gap-2 rounded-lg bg-indigo-600 py-2 text-center text-sm font-semibold text-white hover:bg-indigo-700"
+                                                title="View Details"
                                             >
-                                                View Details
+                                                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                                </svg>
+                                                View
                                             </Link>
                                             <Link
                                                 href={route('activities.edit', activity.id)}
-                                                className="flex-1 rounded-lg border border-gray-300 py-2 text-center text-sm font-semibold text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
+                                                className="flex-1 flex items-center justify-center gap-2 rounded-lg border border-gray-300 py-2 text-center text-sm font-semibold text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
+                                                title="Edit"
                                             >
+                                                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                                </svg>
                                                 Edit
                                             </Link>
                                         </div>

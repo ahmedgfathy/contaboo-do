@@ -37,6 +37,7 @@ class Property extends Model
         'longitude',
         'reference_number',
         'notes',
+        'owner_id',
         'assigned_to',
         'created_by',
         'updated_by',
@@ -56,6 +57,11 @@ class Property extends Model
     protected $appends = ['full_address'];
 
     // Relationships
+    public function owner(): BelongsTo
+    {
+        return $this->belongsTo(Contact::class, 'owner_id');
+    }
+
     public function assignedTo(): BelongsTo
     {
         return $this->belongsTo(User::class, 'assigned_to');
