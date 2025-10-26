@@ -1,227 +1,257 @@
 import ApplicationLogo from '@/Components/ApplicationLogo';
 import Dropdown from '@/Components/Dropdown';
-import NavLink from '@/Components/NavLink';
-import ResponsiveNavLink from '@/Components/ResponsiveNavLink';
 import { Link, usePage } from '@inertiajs/react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { Head } from '@inertiajs/react';
 
 export default function AuthenticatedLayout({ header, children }) {
     const user = usePage().props.auth.user;
-    const auth = usePage().props.auth;
-
-    const [showingNavigationDropdown, setShowingNavigationDropdown] =
-        useState(false);
+    const [sidebarOpen, setSidebarOpen] = useState(false);
+    const [locale, setLocale] = useState(() => localStorage.getItem('crm_locale') || 'en');
     
-    const canViewUsers = auth.permissions?.includes('view users') || false;
+    const isAdmin = user?.roles?.some(role => role.name === 'admin') || false;
+
+    // Listen for locale changes from localStorage
+    useEffect(() => {
+        const handleStorageChange = () => {
+            const newLocale = localStorage.getItem('crm_locale') || 'en';
+            setLocale(newLocale);
+            document.documentElement.dir = newLocale === 'ar' ? 'rtl' : 'ltr';
+            document.documentElement.lang = newLocale;
+        };
+
+        // Set initial direction
+        document.documentElement.dir = locale === 'ar' ? 'rtl' : 'ltr';
+        document.documentElement.lang = locale;
+
+        // Listen for storage changes (when locale is changed in another component)
+        window.addEventListener('storage', handleStorageChange);
+        
+        // Custom event for same-window locale changes
+        window.addEventListener('localeChange', handleStorageChange);
+
+        return () => {
+            window.removeEventListener('storage', handleStorageChange);
+            window.removeEventListener('localeChange', handleStorageChange);
+        };
+    }, [locale]);
+
+    const handleLanguageSwitch = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        console.log('Language switch clicked, current locale:', locale);
+        const newLocale = locale === 'en' ? 'ar' : 'en';
+        setLocale(newLocale);
+        localStorage.setItem('crm_locale', newLocale);
+        document.documentElement.dir = newLocale === 'ar' ? 'rtl' : 'ltr';
+        document.documentElement.lang = newLocale;
+        // Trigger custom event for same-window changes
+        window.dispatchEvent(new Event('localeChange'));
+        console.log('Language switched to:', newLocale);
+    };
+
+    // Translations for navigation
+    const translations = {
+        en: {
+            dashboard: 'Dashboard',
+            contacts: 'Contacts',
+            leads: 'Leads',
+            properties: 'Properties',
+            opportunities: 'Opportunities',
+            reports: 'Reports',
+            activities: 'Activities',
+            management: 'Management',
+            administrator: 'Administrator',
+        },
+        ar: {
+            dashboard: 'لوحة التحكم',
+            contacts: 'جهات الاتصال',
+            leads: 'العملاء المحتملين',
+            properties: 'العقارات',
+            opportunities: 'الفرص',
+            reports: 'التقارير',
+            activities: 'الأنشطة',
+            management: 'الإدارة',
+            administrator: 'المسؤول',
+        }
+    };
+
+    const t = translations[locale];
+
+    const navigation = [
+        { name: t.dashboard, href: 'dashboard', icon: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6' },
+        { name: t.contacts, href: 'contacts.index', icon: 'M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z' },
+        { name: t.leads, href: 'leads.index', icon: 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z' },
+        { name: t.properties, href: 'properties.index', icon: 'M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4' },
+        { name: t.opportunities, href: 'opportunities.index', icon: 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' },
+        { name: t.reports, href: 'reports.index', icon: 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z' },
+        { name: t.activities, href: 'activities.index', icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4' },
+        { name: t.management, href: 'management.index', icon: 'M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 6v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z' },
+    ];
+
+    if (isAdmin) {
+        navigation.push({ name: t.administrator, href: 'users.index', icon: 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z' });
+    }
 
     return (
-        <div className="min-h-screen bg-gray-100 dark:bg-gray-900">
-            <nav className="border-b border-gray-100 bg-white dark:border-gray-700 dark:bg-gray-800">
-                <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                    <div className="flex h-16 justify-between">
-                        <div className="flex">
-                            <div className="flex shrink-0 items-center">
-                                <Link href="/">
-                                    <ApplicationLogo className="block h-9 w-auto fill-current text-gray-800 dark:text-gray-200" />
-                                </Link>
-                            </div>
-
-                            <div className="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
-                                <NavLink
-                                    href={route('dashboard')}
-                                    active={route().current('dashboard')}
-                                >
-                                    Dashboard
-                                </NavLink>
-                                
-                                {canViewUsers && (
-                                    <div className="relative flex items-center">
-                                        <Dropdown>
-                                            <Dropdown.Trigger>
-                                                <button className="inline-flex items-center border-b-2 border-transparent px-1 pt-1 text-sm font-medium leading-5 text-gray-500 transition duration-150 ease-in-out hover:border-gray-300 hover:text-gray-700 focus:border-gray-300 focus:text-gray-700 focus:outline-none dark:text-gray-400 dark:hover:border-gray-700 dark:hover:text-gray-300 dark:focus:border-gray-700 dark:focus:text-gray-300">
-                                                    Administration
-                                                    <svg
-                                                        className="ms-2 h-4 w-4"
-                                                        xmlns="http://www.w3.org/2000/svg"
-                                                        viewBox="0 0 20 20"
-                                                        fill="currentColor"
-                                                    >
-                                                        <path
-                                                            fillRule="evenodd"
-                                                            d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                                                            clipRule="evenodd"
-                                                        />
+        <>
+            <Head>
+                <link rel="preconnect" href="https://fonts.googleapis.com" />
+                <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+                {locale === 'en' ? (
+                    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap" rel="stylesheet" />
+                ) : (
+                    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet" />
+                )}
+            </Head>
+        <div 
+            className="min-h-screen bg-gray-50 dark:bg-gray-900" 
+            dir={locale === 'ar' ? 'rtl' : 'ltr'}
+            style={{ fontFamily: locale === 'en' ? 'Roboto, sans-serif' : 'Cairo, sans-serif' }}
+        >
+            <div className={`hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-64 lg:flex-col ${locale === 'ar' ? 'lg:right-0' : 'lg:left-0'}`}>
+                <div className="flex grow flex-col gap-y-5 overflow-y-auto bg-white px-6 dark:bg-gray-950">
+                    <div className="flex h-16 shrink-0 items-center gap-3">
+                        <ApplicationLogo className="h-10 w-10" />
+                        <span className="text-xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                            Contaboo
+                        </span>
+                    </div>
+                    <nav className="flex flex-1 flex-col">
+                        <ul role="list" className="flex flex-1 flex-col gap-y-7">
+                            <li>
+                                <ul role="list" className="-mx-2 space-y-1">
+                                    {navigation.map((item) => {
+                                        const isActive = route().current(item.href);
+                                        return (
+                                            <li key={item.name}>
+                                                <Link href={route(item.href)} className={'group flex gap-x-3 rounded-lg p-3 text-sm font-semibold leading-6 transition ' + (isActive ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white' : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800')}>
+                                                    <svg className={'h-6 w-6 shrink-0 ' + (isActive ? 'text-white' : 'text-gray-400 group-hover:text-indigo-600 dark:group-hover:text-indigo-400')} fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" d={item.icon} />
                                                     </svg>
-                                                </button>
-                                            </Dropdown.Trigger>
+                                                    {item.name}
+                                                </Link>
+                                            </li>
+                                        );
+                                    })}
+                                </ul>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+            </div>
 
-                                            <Dropdown.Content>
-                                                <Dropdown.Link href={route('users.index')}>
-                                                    User Management
-                                                </Dropdown.Link>
-                                            </Dropdown.Content>
-                                        </Dropdown>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-
-                        <div className="hidden sm:ms-6 sm:flex sm:items-center">
-                            <div className="relative ms-3">
-                                <Dropdown>
-                                    <Dropdown.Trigger>
-                                        <span className="inline-flex rounded-md">
-                                            <button
-                                                type="button"
-                                                className="inline-flex items-center rounded-md border border-transparent bg-white px-3 py-2 text-sm font-medium leading-4 text-gray-500 transition duration-150 ease-in-out hover:text-gray-700 focus:outline-none dark:bg-gray-800 dark:text-gray-400 dark:hover:text-gray-300"
-                                            >
-                                                {user.name}
-
-                                                <svg
-                                                    className="-me-0.5 ms-2 h-4 w-4"
-                                                    xmlns="http://www.w3.org/2000/svg"
-                                                    viewBox="0 0 20 20"
-                                                    fill="currentColor"
-                                                >
-                                                    <path
-                                                        fillRule="evenodd"
-                                                        d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                                                        clipRule="evenodd"
-                                                    />
-                                                </svg>
-                                            </button>
-                                        </span>
-                                    </Dropdown.Trigger>
-
-                                    <Dropdown.Content>
-                                        <Dropdown.Link
-                                            href={route('profile.edit')}
-                                        >
-                                            Profile
-                                        </Dropdown.Link>
-                                        <Dropdown.Link
-                                            href={route('logout')}
-                                            method="post"
-                                            as="button"
-                                        >
-                                            Log Out
-                                        </Dropdown.Link>
-                                    </Dropdown.Content>
-                                </Dropdown>
-                            </div>
-                        </div>
-
-                        <div className="-me-2 flex items-center sm:hidden">
-                            <button
-                                onClick={() =>
-                                    setShowingNavigationDropdown(
-                                        (previousState) => !previousState,
-                                    )
-                                }
-                                className="inline-flex items-center justify-center rounded-md p-2 text-gray-400 transition duration-150 ease-in-out hover:bg-gray-100 hover:text-gray-500 focus:bg-gray-100 focus:text-gray-500 focus:outline-none dark:text-gray-500 dark:hover:bg-gray-900 dark:hover:text-gray-400 dark:focus:bg-gray-900 dark:focus:text-gray-400"
-                            >
-                                <svg
-                                    className="h-6 w-6"
-                                    stroke="currentColor"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                >
-                                    <path
-                                        className={
-                                            !showingNavigationDropdown
-                                                ? 'inline-flex'
-                                                : 'hidden'
-                                        }
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth="2"
-                                        d="M4 6h16M4 12h16M4 18h16"
-                                    />
-                                    <path
-                                        className={
-                                            showingNavigationDropdown
-                                                ? 'inline-flex'
-                                                : 'hidden'
-                                        }
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth="2"
-                                        d="M6 18L18 6M6 6l12 12"
-                                    />
+            <div className={sidebarOpen ? 'relative z-50 lg:hidden' : 'relative z-50 lg:hidden hidden'}>
+                <div className="fixed inset-0 bg-gray-900/80" onClick={() => setSidebarOpen(false)}></div>
+                <div className="fixed inset-0 flex">
+                    <div className={`relative flex w-full max-w-xs flex-1 ${locale === 'ar' ? 'ml-16' : 'mr-16'}`}>
+                        <div className={`absolute top-0 flex w-16 justify-center pt-5 ${locale === 'ar' ? 'right-full' : 'left-full'}`}>
+                            <button type="button" className="-m-2.5 p-2.5" onClick={() => setSidebarOpen(false)}>
+                                <svg className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                                 </svg>
                             </button>
                         </div>
+                        <div className="flex grow flex-col gap-y-5 overflow-y-auto bg-white px-6 pb-2 dark:bg-gray-950">
+                            <div className="flex h-16 shrink-0 items-center gap-3">
+                                <ApplicationLogo className="h-10 w-10" />
+                                <span className="text-xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">Contaboo</span>
+                            </div>
+                            <nav className="flex flex-1 flex-col">
+                                <ul role="list" className="flex flex-1 flex-col gap-y-7">
+                                    <li>
+                                        <ul role="list" className="-mx-2 space-y-1">
+                                            {navigation.map((item) => {
+                                                const isActive = route().current(item.href);
+                                                return (
+                                                    <li key={item.name}>
+                                                        <Link href={route(item.href)} className={'group flex gap-x-3 rounded-lg p-3 text-sm font-semibold leading-6 ' + (isActive ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white' : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800')}>
+                                                            <svg className={'h-6 w-6 shrink-0 ' + (isActive ? 'text-white' : 'text-gray-400')} fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" d={item.icon} />
+                                                            </svg>
+                                                            {item.name}
+                                                        </Link>
+                                                    </li>
+                                                );
+                                            })}
+                                        </ul>
+                                    </li>
+                                </ul>
+                            </nav>
+                        </div>
                     </div>
                 </div>
+            </div>
 
-                <div
-                    className={
-                        (showingNavigationDropdown ? 'block' : 'hidden') +
-                        ' sm:hidden'
-                    }
-                >
-                    <div className="space-y-1 pb-3 pt-2">
-                        <ResponsiveNavLink
-                            href={route('dashboard')}
-                            active={route().current('dashboard')}
-                        >
-                            Dashboard
-                        </ResponsiveNavLink>
-                        
-                        {canViewUsers && (
-                            <>
-                                <div className="border-t border-gray-200 dark:border-gray-600">
-                                    <div className="px-4 py-2">
-                                        <div className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                                            Administration
-                                        </div>
-                                    </div>
-                                </div>
-                                <ResponsiveNavLink
-                                    href={route('users.index')}
-                                    active={route().current('users.index')}
-                                >
-                                    User Management
-                                </ResponsiveNavLink>
-                            </>
-                        )}
-                    </div>
+            <div className={locale === 'ar' ? 'lg:pr-64' : 'lg:pl-64'}>
+                <div className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b bg-white px-4 shadow-sm sm:gap-x-6 sm:px-6 lg:px-8 border-gray-200 lg:bg-black lg:border-gray-800">
+                    <button type="button" className="-m-2.5 p-2.5 text-gray-700 lg:hidden" onClick={() => setSidebarOpen(true)}>
+                        <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+                        </svg>
+                    </button>
 
-                    <div className="border-t border-gray-200 pb-1 pt-4 dark:border-gray-600">
-                        <div className="px-4">
-                            <div className="text-base font-medium text-gray-800 dark:text-gray-200">
-                                {user.name}
-                            </div>
-                            <div className="text-sm font-medium text-gray-500">
-                                {user.email}
-                            </div>
+                    <div className="h-6 w-px bg-gray-200 lg:hidden lg:bg-gray-700"></div>
+
+                    <div className="flex flex-1 gap-x-4 self-stretch lg:gap-x-6">
+                        <div className="flex flex-1 items-center">
+                            {header && <h1 className="text-xl font-semibold text-gray-900 lg:text-white">{header}</h1>}
                         </div>
+                        <div className="flex items-center gap-x-4 lg:gap-x-6">
+                            {/* Notification Icon with Badge */}
+                            <button className="relative rounded-full p-1.5 text-gray-600 hover:bg-gray-100 lg:text-gray-300 lg:hover:bg-gray-800" title="Notifications">
+                                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
+                                </svg>
+                                <span className="absolute top-0 right-0 flex h-5 w-5 items-center justify-center rounded-full bg-red-600 text-xs font-semibold text-white">5</span>
+                            </button>
 
-                        <div className="mt-3 space-y-1">
-                            <ResponsiveNavLink href={route('profile.edit')}>
-                                Profile
-                            </ResponsiveNavLink>
-                            <ResponsiveNavLink
-                                method="post"
-                                href={route('logout')}
-                                as="button"
+                            {/* Language Switcher */}
+                            <button 
+                                type="button"
+                                onClick={handleLanguageSwitch}
+                                className="flex items-center rounded-full p-1.5 hover:bg-gray-100 lg:hover:bg-gray-800 transition-transform hover:scale-110 cursor-pointer z-50" 
+                                title={locale === 'en' ? 'التبديل إلى العربية' : 'Switch to English'}
                             >
-                                Log Out
-                            </ResponsiveNavLink>
+                                <img 
+                                    src={locale === 'en' ? 'https://flagcdn.com/w40/eg.png' : 'https://flagcdn.com/w40/us.png'} 
+                                    alt={locale === 'en' ? 'العربية' : 'English'} 
+                                    className="h-6 w-6 rounded-full pointer-events-none" 
+                                />
+                            </button>
+
+                            <Dropdown>
+                                <Dropdown.Trigger>
+                                    <button className="flex items-center gap-x-3 text-sm font-semibold text-gray-900 hover:text-gray-700 lg:text-white lg:hover:text-gray-300">
+                                        <span className="hidden lg:flex lg:items-center">
+                                            <span className="text-sm font-semibold leading-6">{user.name}</span>
+                                            <svg className="ml-2 h-5 w-5 text-gray-400 lg:text-gray-300" viewBox="0 0 20 20" fill="currentColor">
+                                                <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clipRule="evenodd" />
+                                            </svg>
+                                        </span>
+                                        <span className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold">
+                                            {user.name.charAt(0).toUpperCase()}
+                                        </span>
+                                    </button>
+                                </Dropdown.Trigger>
+                                <Dropdown.Content align="right" width="48">
+                                    <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-700">
+                                        <div className="text-sm font-medium text-gray-900 dark:text-white">{user.name}</div>
+                                        <div className="text-sm text-gray-500 dark:text-gray-400">{user.email}</div>
+                                    </div>
+                                    <Dropdown.Link href={route('profile.edit')}>Profile Settings</Dropdown.Link>
+                                    <Dropdown.Link href={route('logout')} method="post" as="button">Sign Out</Dropdown.Link>
+                                </Dropdown.Content>
+                            </Dropdown>
                         </div>
                     </div>
                 </div>
-            </nav>
 
-            {header && (
-                <header className="bg-white shadow dark:bg-gray-800">
-                    <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-                        {header}
-                    </div>
-                </header>
-            )}
-
-            <main>{children}</main>
+                <main className="py-6">
+                    <div className="px-4 sm:px-6 lg:px-8">{children}</div>
+                </main>
+            </div>
         </div>
+        </>
     );
 }
