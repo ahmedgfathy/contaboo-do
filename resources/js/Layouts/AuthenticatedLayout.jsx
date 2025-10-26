@@ -72,7 +72,7 @@ export default function AuthenticatedLayout({ header, children, backLink }) {
             reports: 'التقارير',
             activities: 'الأنشطة',
             management: 'الإدارة',
-            administrator: 'المسؤول',
+            administrator: 'ادارة النظام',
         }
     };
 
