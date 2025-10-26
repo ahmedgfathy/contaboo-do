@@ -1,6 +1,7 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link } from '@inertiajs/react';
 import { useState, useEffect } from 'react';
+import ScrollToTop from '@/Components/ScrollToTop';
 
 export default function Dashboard({ stats, recentActivities }) {
     const [locale, setLocale] = useState(() => localStorage.getItem('crm_locale') || 'en');
@@ -405,6 +406,7 @@ export default function Dashboard({ stats, recentActivities }) {
                 </div>
             </div>
             </div>
+            <ScrollToTop />
         </AuthenticatedLayout>
     );
 }

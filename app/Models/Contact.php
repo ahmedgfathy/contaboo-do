@@ -25,6 +25,7 @@ class Contact extends Model
         'postal_code',
         'status',
         'notes',
+        'original_lead_id',
         'created_by',
         'updated_by',
     ];
@@ -39,6 +40,12 @@ class Contact extends Model
     public function updatedBy()
     {
         return $this->belongsTo(User::class, 'updated_by');
+    }
+
+    // Original lead that was converted to this contact
+    public function originalLead()
+    {
+        return $this->belongsTo(Lead::class, 'original_lead_id');
     }
 
     // Activities related to this contact

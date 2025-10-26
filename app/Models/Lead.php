@@ -74,6 +74,11 @@ class Lead extends Model
         return $this->hasMany(LeadAudit::class);
     }
 
+    public function convertedToContact()
+    {
+        return $this->belongsTo(Contact::class, 'converted_to_contact_id');
+    }
+
     protected static function booted()
     {
         static::created(function ($lead) {
