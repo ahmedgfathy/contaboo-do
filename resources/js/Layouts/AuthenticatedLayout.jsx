@@ -1,32 +1,115 @@
 import ApplicationLogo from '@/Components/ApplicationLogo';
 import Dropdown from '@/Components/Dropdown';
 import { Link, usePage } from '@inertiajs/react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { Head } from '@inertiajs/react';
 
 export default function AuthenticatedLayout({ header, children }) {
     const user = usePage().props.auth.user;
     const [sidebarOpen, setSidebarOpen] = useState(false);
+    const [locale, setLocale] = useState(() => localStorage.getItem('crm_locale') || 'en');
     
     const isAdmin = user?.roles?.some(role => role.name === 'admin') || false;
 
+    // Listen for locale changes from localStorage
+    useEffect(() => {
+        const handleStorageChange = () => {
+            const newLocale = localStorage.getItem('crm_locale') || 'en';
+            setLocale(newLocale);
+            document.documentElement.dir = newLocale === 'ar' ? 'rtl' : 'ltr';
+            document.documentElement.lang = newLocale;
+        };
+
+        // Set initial direction
+        document.documentElement.dir = locale === 'ar' ? 'rtl' : 'ltr';
+        document.documentElement.lang = locale;
+
+        // Listen for storage changes (when locale is changed in another component)
+        window.addEventListener('storage', handleStorageChange);
+        
+        // Custom event for same-window locale changes
+        window.addEventListener('localeChange', handleStorageChange);
+
+        return () => {
+            window.removeEventListener('storage', handleStorageChange);
+            window.removeEventListener('localeChange', handleStorageChange);
+        };
+    }, [locale]);
+
+    const handleLanguageSwitch = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        console.log('Language switch clicked, current locale:', locale);
+        const newLocale = locale === 'en' ? 'ar' : 'en';
+        setLocale(newLocale);
+        localStorage.setItem('crm_locale', newLocale);
+        document.documentElement.dir = newLocale === 'ar' ? 'rtl' : 'ltr';
+        document.documentElement.lang = newLocale;
+        // Trigger custom event for same-window changes
+        window.dispatchEvent(new Event('localeChange'));
+        console.log('Language switched to:', newLocale);
+    };
+
+    // Translations for navigation
+    const translations = {
+        en: {
+            dashboard: 'Dashboard',
+            contacts: 'Contacts',
+            leads: 'Leads',
+            properties: 'Properties',
+            opportunities: 'Opportunities',
+            reports: 'Reports',
+            activities: 'Activities',
+            management: 'Management',
+            administrator: 'Administrator',
+        },
+        ar: {
+            dashboard: 'لوحة التحكم',
+            contacts: 'جهات الاتصال',
+            leads: 'العملاء المحتملين',
+            properties: 'العقارات',
+            opportunities: 'الفرص',
+            reports: 'التقارير',
+            activities: 'الأنشطة',
+            management: 'الإدارة',
+            administrator: 'المسؤول',
+        }
+    };
+
+    const t = translations[locale];
+
     const navigation = [
-        { name: 'Dashboard', href: 'dashboard', icon: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6' },
-        { name: 'Contacts', href: 'contacts.index', icon: 'M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z' },
-        { name: 'Leads', href: 'leads.index', icon: 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z' },
-        { name: 'Properties', href: 'properties.index', icon: 'M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4' },
-        { name: 'Opportunities', href: 'opportunities.index', icon: 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' },
-        { name: 'Reports', href: 'reports.index', icon: 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z' },
-        { name: 'Activities', href: 'activities.index', icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4' },
-        { name: 'Management', href: 'management.index', icon: 'M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z' },
+        { name: t.dashboard, href: 'dashboard', icon: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6' },
+        { name: t.contacts, href: 'contacts.index', icon: 'M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z' },
+        { name: t.leads, href: 'leads.index', icon: 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z' },
+        { name: t.properties, href: 'properties.index', icon: 'M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4' },
+        { name: t.opportunities, href: 'opportunities.index', icon: 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' },
+        { name: t.reports, href: 'reports.index', icon: 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z' },
+        { name: t.activities, href: 'activities.index', icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4' },
+        { name: t.management, href: 'management.index', icon: 'M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 6v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z' },
     ];
 
     if (isAdmin) {
-        navigation.push({ name: 'Administrator', href: 'users.index', icon: 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z' });
+        navigation.push({ name: t.administrator, href: 'users.index', icon: 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z' });
     }
 
     return (
-        <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-            <div className="hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-64 lg:flex-col">
+        <>
+            <Head>
+                <link rel="preconnect" href="https://fonts.googleapis.com" />
+                <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+                {locale === 'en' ? (
+                    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap" rel="stylesheet" />
+                ) : (
+                    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet" />
+                )}
+            </Head>
+        <div 
+            className="min-h-screen bg-gray-50 dark:bg-gray-900" 
+            dir={locale === 'ar' ? 'rtl' : 'ltr'}
+            style={{ fontFamily: locale === 'en' ? 'Roboto, sans-serif' : 'Cairo, sans-serif' }}
+        >
+            <div className={`hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-64 lg:flex-col ${locale === 'ar' ? 'lg:right-0' : 'lg:left-0'}`}>
                 <div className="flex grow flex-col gap-y-5 overflow-y-auto bg-white px-6 dark:bg-gray-950">
                     <div className="flex h-16 shrink-0 items-center gap-3">
                         <ApplicationLogo className="h-10 w-10" />
@@ -61,8 +144,8 @@ export default function AuthenticatedLayout({ header, children }) {
             <div className={sidebarOpen ? 'relative z-50 lg:hidden' : 'relative z-50 lg:hidden hidden'}>
                 <div className="fixed inset-0 bg-gray-900/80" onClick={() => setSidebarOpen(false)}></div>
                 <div className="fixed inset-0 flex">
-                    <div className="relative mr-16 flex w-full max-w-xs flex-1">
-                        <div className="absolute left-full top-0 flex w-16 justify-center pt-5">
+                    <div className={`relative flex w-full max-w-xs flex-1 ${locale === 'ar' ? 'ml-16' : 'mr-16'}`}>
+                        <div className={`absolute top-0 flex w-16 justify-center pt-5 ${locale === 'ar' ? 'right-full' : 'left-full'}`}>
                             <button type="button" className="-m-2.5 p-2.5" onClick={() => setSidebarOpen(false)}>
                                 <svg className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -100,7 +183,7 @@ export default function AuthenticatedLayout({ header, children }) {
                 </div>
             </div>
 
-            <div className="lg:pl-64">
+            <div className={locale === 'ar' ? 'lg:pr-64' : 'lg:pl-64'}>
                 <div className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b bg-white px-4 shadow-sm sm:gap-x-6 sm:px-6 lg:px-8 border-gray-200 lg:bg-black lg:border-gray-800">
                     <button type="button" className="-m-2.5 p-2.5 text-gray-700 lg:hidden" onClick={() => setSidebarOpen(true)}>
                         <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
@@ -124,8 +207,17 @@ export default function AuthenticatedLayout({ header, children }) {
                             </button>
 
                             {/* Language Switcher */}
-                            <button className="flex items-center rounded-full p-1.5 hover:bg-gray-100 lg:hover:bg-gray-800" title="Switch Language">
-                                <img src="https://flagcdn.com/w40/us.png" alt="English" className="h-6 w-6 rounded-full" />
+                            <button 
+                                type="button"
+                                onClick={handleLanguageSwitch}
+                                className="flex items-center rounded-full p-1.5 hover:bg-gray-100 lg:hover:bg-gray-800 transition-transform hover:scale-110 cursor-pointer z-50" 
+                                title={locale === 'en' ? 'التبديل إلى العربية' : 'Switch to English'}
+                            >
+                                <img 
+                                    src={locale === 'en' ? 'https://flagcdn.com/w40/eg.png' : 'https://flagcdn.com/w40/us.png'} 
+                                    alt={locale === 'en' ? 'العربية' : 'English'} 
+                                    className="h-6 w-6 rounded-full pointer-events-none" 
+                                />
                             </button>
 
                             <Dropdown>
@@ -160,5 +252,6 @@ export default function AuthenticatedLayout({ header, children }) {
                 </main>
             </div>
         </div>
+        </>
     );
 }

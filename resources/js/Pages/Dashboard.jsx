@@ -3,15 +3,23 @@ import { Head, Link } from '@inertiajs/react';
 import { useState, useEffect } from 'react';
 
 export default function Dashboard({ stats, recentActivities }) {
-    const [locale, setLocale] = useState(() => {
-        return localStorage.getItem('crm_locale') || 'en';
-    });
+    const [locale, setLocale] = useState(() => localStorage.getItem('crm_locale') || 'en');
 
     useEffect(() => {
-        localStorage.setItem('crm_locale', locale);
-        document.documentElement.dir = locale === 'ar' ? 'rtl' : 'ltr';
-        document.documentElement.lang = locale;
-    }, [locale]);
+        // Listen for locale changes from the layout
+        const handleLocaleChange = () => {
+            const newLocale = localStorage.getItem('crm_locale') || 'en';
+            setLocale(newLocale);
+        };
+
+        window.addEventListener('localeChange', handleLocaleChange);
+        window.addEventListener('storage', handleLocaleChange);
+
+        return () => {
+            window.removeEventListener('localeChange', handleLocaleChange);
+            window.removeEventListener('storage', handleLocaleChange);
+        };
+    }, []);
 
     const handleLanguageSwitch = () => {
         const newLocale = locale === 'en' ? 'ar' : 'en';
@@ -58,8 +66,8 @@ export default function Dashboard({ stats, recentActivities }) {
         },
         ar: {
             dashboard: 'لوحة التحكم',
-            welcomeTitle: 'مرحباً بك في كونتابو CRM',
-            welcomeSubtitle: 'إدارة العملاء المحتملين والعقارات من هذا المركز المركزي.',
+            welcomeTitle: 'مرحباً بك في كونتابو',
+            welcomeSubtitle: 'إدارة العملاء المحتملين والعقارات من لوحة التحكم المركزية',
             totalLeads: 'إجمالي العملاء المحتملين',
             totalProperties: 'إجمالي العقارات',
             propertyValue: 'قيمة العقار',
@@ -138,15 +146,12 @@ export default function Dashboard({ stats, recentActivities }) {
                     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet" />
                 )}
             </Head>
-            <div 
-                dir={locale === 'ar' ? 'rtl' : 'ltr'} 
-                style={{ fontFamily: locale === 'en' ? 'Roboto, sans-serif' : 'Cairo, sans-serif' }}
-            >
+            <div style={{ fontFamily: locale === 'en' ? 'Roboto, sans-serif' : 'Cairo, sans-serif' }}>
 
             <div className="mb-8 overflow-hidden rounded-lg bg-gradient-to-r from-indigo-600 to-purple-600 shadow-lg">
                 <div className="p-8 text-white">
-                    <h3 className="text-2xl font-bold mb-2">{t.welcomeTitle}</h3>
-                    <p className="text-indigo-100">{t.welcomeSubtitle}</p>
+                    <h3 className="text-2xl font-bold mb-2 break-words">{t.welcomeTitle}</h3>
+                    <p className="text-indigo-100 break-words">{t.welcomeSubtitle}</p>
                 </div>
             </div>
 
