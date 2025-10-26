@@ -30,11 +30,21 @@ class Lead extends Model
         'created_by',
         'updated_by',
         'last_contact_date',
+        'requirements',
+        'budget',
+        'property_type',
+        'property_category',
+        'no_of_rooms',
+        'no_of_bathrooms',
+        'asking',
     ];
 
     protected $casts = [
         'estimated_value' => 'decimal:2',
+        'budget' => 'decimal:2',
         'last_contact_date' => 'datetime',
+        'no_of_rooms' => 'integer',
+        'no_of_bathrooms' => 'integer',
     ];
 
     protected $appends = ['full_name'];

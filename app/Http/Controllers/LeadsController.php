@@ -63,7 +63,15 @@ class LeadsController extends Controller
         $sortDirection = $request->get('sort_direction', 'desc');
         $query->orderBy($sortField, $sortDirection);
 
-        $leads = $query->paginate(15)->withQueryString();
+        // Get per_page from request, session, or default to 15
+        $perPage = $request->get('per_page', session('leads_per_page', 15));
+        
+        // Store per_page in session for persistence
+        if ($request->filled('per_page')) {
+            session(['leads_per_page' => $perPage]);
+        }
+
+        $leads = $query->paginate($perPage)->withQueryString();
 
         $users = User::select('id', 'name')->get();
 
@@ -102,7 +110,7 @@ class LeadsController extends Controller
             'stats' => $stats,
             'savedFilters' => $savedFilters,
             'availableColumns' => $availableColumns,
-            'filters' => $request->only(['search', 'status', 'source', 'assigned_to', 'date_from', 'date_to']),
+            'filters' => $request->only(['search', 'status', 'source', 'assigned_to', 'date_from', 'date_to', 'per_page']),
             'statuses' => ['new', 'contacted', 'qualified', 'proposal', 'negotiation', 'won', 'lost'],
             'sources' => ['website', 'referral', 'social_media', 'email_campaign', 'cold_call', 'trade_show', 'partner', 'other'],
         ]);
@@ -139,10 +147,22 @@ class LeadsController extends Controller
             'postal_code' => 'nullable|string|max:255',
             'assigned_to' => 'nullable|exists:users,id',
             'last_contact_date' => 'nullable|date',
+            'requirements' => 'nullable|string',
+            'budget' => 'nullable|numeric|min:0',
+            'property_type' => 'nullable|in:apartment,villa,shop,land,office,warehouse,building',
+            'property_category' => 'nullable|in:residential,commercial,industrial,agricultural',
+            'no_of_rooms' => 'nullable|integer|min:0',
+            'no_of_bathrooms' => 'nullable|integer|min:0',
+            'asking' => 'nullable|in:buy,rent',
         ]);
 
         $validated['created_by'] = auth()->id();
         $validated['updated_by'] = auth()->id();
+        
+        // Set default assigned_to to current user if not provided
+        if (!isset($validated['assigned_to'])) {
+            $validated['assigned_to'] = auth()->id();
+        }
 
         $lead = Lead::create($validated);
 
@@ -190,6 +210,13 @@ class LeadsController extends Controller
             'postal_code' => 'nullable|string|max:255',
             'assigned_to' => 'nullable|exists:users,id',
             'last_contact_date' => 'nullable|date',
+            'requirements' => 'nullable|string',
+            'budget' => 'nullable|numeric|min:0',
+            'property_type' => 'nullable|in:apartment,villa,shop,land,office,warehouse,building',
+            'property_category' => 'nullable|in:residential,commercial,industrial,agricultural',
+            'no_of_rooms' => 'nullable|integer|min:0',
+            'no_of_bathrooms' => 'nullable|integer|min:0',
+            'asking' => 'nullable|in:buy,rent',
         ]);
 
         $validated['updated_by'] = auth()->id();

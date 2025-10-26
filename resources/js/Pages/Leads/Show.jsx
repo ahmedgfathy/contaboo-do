@@ -117,6 +117,69 @@ export default function Show({ lead }) {
                             </div>
                         </div>
 
+                        {/* Lead Requirements */}
+                        {(lead.requirements || lead.budget || lead.property_type || lead.property_category || lead.no_of_rooms || lead.no_of_bathrooms || lead.asking) && (
+                            <div className="overflow-hidden rounded-lg bg-white shadow dark:bg-gray-800">
+                                <div className="border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-900">
+                                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Lead Requirements</h3>
+                                </div>
+                                <div className="p-6">
+                                    <dl className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                                        {lead.requirements && (
+                                            <div className="sm:col-span-2">
+                                                <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">Requirements</dt>
+                                                <dd className="mt-1 text-sm text-gray-900 dark:text-white whitespace-pre-wrap">{lead.requirements}</dd>
+                                            </div>
+                                        )}
+                                        {lead.budget && (
+                                            <div>
+                                                <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">Budget</dt>
+                                                <dd className="mt-1 text-sm font-semibold text-gray-900 dark:text-white">
+                                                    ${parseFloat(lead.budget).toLocaleString()}
+                                                </dd>
+                                            </div>
+                                        )}
+                                        {lead.property_type && (
+                                            <div>
+                                                <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">Property Type</dt>
+                                                <dd className="mt-1 text-sm text-gray-900 dark:text-white">
+                                                    {lead.property_type.charAt(0).toUpperCase() + lead.property_type.slice(1)}
+                                                </dd>
+                                            </div>
+                                        )}
+                                        {lead.property_category && (
+                                            <div>
+                                                <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">Property Category</dt>
+                                                <dd className="mt-1 text-sm text-gray-900 dark:text-white">
+                                                    {lead.property_category.charAt(0).toUpperCase() + lead.property_category.slice(1)}
+                                                </dd>
+                                            </div>
+                                        )}
+                                        {lead.no_of_rooms !== null && lead.no_of_rooms !== undefined && (
+                                            <div>
+                                                <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">No. of Rooms</dt>
+                                                <dd className="mt-1 text-sm text-gray-900 dark:text-white">{lead.no_of_rooms}</dd>
+                                            </div>
+                                        )}
+                                        {lead.no_of_bathrooms !== null && lead.no_of_bathrooms !== undefined && (
+                                            <div>
+                                                <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">No. of Bathrooms</dt>
+                                                <dd className="mt-1 text-sm text-gray-900 dark:text-white">{lead.no_of_bathrooms}</dd>
+                                            </div>
+                                        )}
+                                        {lead.asking && (
+                                            <div>
+                                                <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">Asking</dt>
+                                                <dd className="mt-1 text-sm text-gray-900 dark:text-white">
+                                                    {lead.asking.charAt(0).toUpperCase() + lead.asking.slice(1)}
+                                                </dd>
+                                            </div>
+                                        )}
+                                    </dl>
+                                </div>
+                            </div>
+                        )}
+
                         {/* Company Information */}
                         <div className="overflow-hidden rounded-lg bg-white shadow dark:bg-gray-800">
                             <div className="border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-900">
@@ -235,6 +298,69 @@ export default function Show({ lead }) {
                                 <div>
                                     <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">Created At</dt>
                                     <dd className="mt-1 text-sm text-gray-900 dark:text-white">{formatDate(lead.created_at)}</dd>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Brief History */}
+                        <div className="overflow-hidden rounded-lg bg-white shadow dark:bg-gray-800">
+                            <div className="border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-900">
+                                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Brief History</h3>
+                            </div>
+                            <div className="p-6 space-y-4">
+                                {/* Creation */}
+                                <div className="flex items-start space-x-3">
+                                    <div className="flex-shrink-0">
+                                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/30">
+                                            <svg className="h-4 w-4 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                                            </svg>
+                                        </div>
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                        <p className="text-sm font-medium text-gray-900 dark:text-white">Created</p>
+                                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                                            by {lead.created_by?.name || 'Unknown'}
+                                        </p>
+                                        <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
+                                            {formatDate(lead.created_at)}
+                                        </p>
+                                    </div>
+                                </div>
+
+                                {/* Last Update */}
+                                {lead.updated_at && lead.updated_at !== lead.created_at && (
+                                    <div className="flex items-start space-x-3 pt-3 border-t border-gray-200 dark:border-gray-700">
+                                        <div className="flex-shrink-0">
+                                            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/30">
+                                                <svg className="h-4 w-4 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                                </svg>
+                                            </div>
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <p className="text-sm font-medium text-gray-900 dark:text-white">Last Modified</p>
+                                            <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                                                by {lead.updated_by?.name || 'Unknown'}
+                                            </p>
+                                            <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
+                                                {formatDate(lead.updated_at)}
+                                            </p>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* View Full History Link */}
+                                <div className="pt-3 border-t border-gray-200 dark:border-gray-700">
+                                    <Link
+                                        href={route('activities.index', { related_type: 'Lead', related_id: lead.id })}
+                                        className="inline-flex items-center text-sm text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300"
+                                    >
+                                        <svg className="mr-1.5 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                        View Full Activity History
+                                    </Link>
                                 </div>
                             </div>
                         </div>

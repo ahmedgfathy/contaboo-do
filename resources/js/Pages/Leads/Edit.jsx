@@ -20,6 +20,13 @@ export default function Edit({ lead, users, statuses, sources }) {
         postal_code: lead.postal_code || '',
         assigned_to: lead.assigned_to || '',
         last_contact_date: lead.last_contact_date ? lead.last_contact_date.split('T')[0] : '',
+        requirements: lead.requirements || '',
+        budget: lead.budget || '',
+        property_type: lead.property_type || '',
+        property_category: lead.property_category || '',
+        no_of_rooms: lead.no_of_rooms || '',
+        no_of_bathrooms: lead.no_of_bathrooms || '',
+        asking: lead.asking || '',
     });
 
     const handleSubmit = (e) => {
@@ -54,7 +61,7 @@ export default function Edit({ lead, users, statuses, sources }) {
 
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                            Last Name <span className="text-red-500">*</span>
+                                            Last Name
                                         </label>
                                         <input
                                             type="text"
@@ -67,7 +74,7 @@ export default function Edit({ lead, users, statuses, sources }) {
 
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                            Email <span className="text-red-500">*</span>
+                                            Email
                                         </label>
                                         <input
                                             type="email"
@@ -79,7 +86,9 @@ export default function Edit({ lead, users, statuses, sources }) {
                                     </div>
 
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Phone</label>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                            Mobile <span className="text-red-500">*</span>
+                                        </label>
                                         <input
                                             type="tel"
                                             value={data.phone}
@@ -87,6 +96,117 @@ export default function Edit({ lead, users, statuses, sources }) {
                                             className="mt-1 w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                                         />
                                         {errors.phone && <p className="mt-1 text-sm text-red-600">{errors.phone}</p>}
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Lead Requirements */}
+                            <div className="border-t border-gray-200 dark:border-gray-700 pt-6">
+                                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Lead Requirements</h3>
+                                <div className="grid grid-cols-1 gap-6">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Lead Requirements</label>
+                                        <textarea
+                                            rows={3}
+                                            value={data.requirements}
+                                            onChange={(e) => setData('requirements', e.target.value)}
+                                            className="mt-1 w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                                            placeholder="Describe the lead's specific requirements..."
+                                        />
+                                        {errors.requirements && <p className="mt-1 text-sm text-red-600">{errors.requirements}</p>}
+                                    </div>
+
+                                    <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Budget</label>
+                                            <div className="relative mt-1">
+                                                <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">$</span>
+                                                <input
+                                                    type="number"
+                                                    step="0.01"
+                                                    value={data.budget}
+                                                    onChange={(e) => setData('budget', e.target.value)}
+                                                    className="w-full rounded-lg border-gray-300 pl-7 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                                                    placeholder="0.00"
+                                                />
+                                            </div>
+                                            {errors.budget && <p className="mt-1 text-sm text-red-600">{errors.budget}</p>}
+                                        </div>
+
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Property Type</label>
+                                            <select
+                                                value={data.property_type}
+                                                onChange={(e) => setData('property_type', e.target.value)}
+                                                className="mt-1 w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                                            >
+                                                <option value="">Select Property Type</option>
+                                                <option value="apartment">Apartment</option>
+                                                <option value="villa">Villa</option>
+                                                <option value="shop">Shop</option>
+                                                <option value="land">Land</option>
+                                                <option value="office">Office</option>
+                                                <option value="warehouse">Warehouse</option>
+                                                <option value="building">Building</option>
+                                            </select>
+                                            {errors.property_type && <p className="mt-1 text-sm text-red-600">{errors.property_type}</p>}
+                                        </div>
+
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Property Category</label>
+                                            <select
+                                                value={data.property_category}
+                                                onChange={(e) => setData('property_category', e.target.value)}
+                                                className="mt-1 w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                                            >
+                                                <option value="">Select Property Category</option>
+                                                <option value="residential">Residential</option>
+                                                <option value="commercial">Commercial</option>
+                                                <option value="industrial">Industrial</option>
+                                                <option value="agricultural">Agricultural</option>
+                                            </select>
+                                            {errors.property_category && <p className="mt-1 text-sm text-red-600">{errors.property_category}</p>}
+                                        </div>
+
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">No. of Rooms</label>
+                                            <input
+                                                type="number"
+                                                min="0"
+                                                value={data.no_of_rooms}
+                                                onChange={(e) => setData('no_of_rooms', e.target.value)}
+                                                className="mt-1 w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                                                placeholder="0"
+                                            />
+                                            {errors.no_of_rooms && <p className="mt-1 text-sm text-red-600">{errors.no_of_rooms}</p>}
+                                        </div>
+
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">No. of Bathrooms</label>
+                                            <input
+                                                type="number"
+                                                min="0"
+                                                value={data.no_of_bathrooms}
+                                                onChange={(e) => setData('no_of_bathrooms', e.target.value)}
+                                                className="mt-1 w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                                                placeholder="0"
+                                            />
+                                            {errors.no_of_bathrooms && <p className="mt-1 text-sm text-red-600">{errors.no_of_bathrooms}</p>}
+                                        </div>
+
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Asking</label>
+                                            <select
+                                                value={data.asking}
+                                                onChange={(e) => setData('asking', e.target.value)}
+                                                className="mt-1 w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                                            >
+                                                <option value="">Select Option</option>
+                                                <option value="buy">Buy</option>
+                                                <option value="rent">Rent</option>
+                                            </select>
+                                            {errors.asking && <p className="mt-1 text-sm text-red-600">{errors.asking}</p>}
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -125,7 +245,7 @@ export default function Edit({ lead, users, statuses, sources }) {
                                 <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                            Status <span className="text-red-500">*</span>
+                                            Status
                                         </label>
                                         <select
                                             value={data.status}
@@ -143,7 +263,7 @@ export default function Edit({ lead, users, statuses, sources }) {
 
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                            Source <span className="text-red-500">*</span>
+                                            Source
                                         </label>
                                         <select
                                             value={data.source}

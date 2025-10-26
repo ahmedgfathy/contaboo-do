@@ -1,7 +1,9 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, router, useForm } from '@inertiajs/react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import CustomFilterModal from '@/Components/CustomFilterModal';
+import Pagination from '@/Components/Pagination';
+import ScrollToTop from '@/Components/ScrollToTop';
 import axios from 'axios';
 
 export default function LeadsIndex({ leads, users, filters, statuses, sources, stats, savedFilters = [], availableColumns = [] }) {
@@ -13,6 +15,8 @@ export default function LeadsIndex({ leads, users, filters, statuses, sources, s
     const [selectedFilter, setSelectedFilter] = useState(null);
     const [editingFilter, setEditingFilter] = useState(null);
     const [visibleColumns, setVisibleColumns] = useState([]);
+    const [perPage, setPerPage] = useState(leads.per_page || 15);
+    const initialRender = useRef(true);
 
     const searchForm = useForm({
         search: filters.search || '',
@@ -48,12 +52,20 @@ export default function LeadsIndex({ leads, users, filters, statuses, sources, s
 
     // Auto-submit filters immediately when changed
     useEffect(() => {
-        if (filters.status !== undefined || filters.source !== undefined || filters.assigned_to !== undefined || filters.date_from !== undefined || filters.date_to !== undefined) {
+        // Skip the first render to avoid triggering on page load
+        if (initialRender.current) {
+            initialRender.current = false;
+            return;
+        }
+
+        const timer = setTimeout(() => {
             router.get(route('leads.index'), getCleanParams(searchForm.data), {
                 preserveState: true,
                 preserveScroll: true,
             });
-        }
+        }, 100); // Small delay to batch multiple filter changes
+
+        return () => clearTimeout(timer);
     }, [searchForm.data.status, searchForm.data.source, searchForm.data.assigned_to, searchForm.data.date_from, searchForm.data.date_to]);
 
     const handleReset = () => {
@@ -156,6 +168,15 @@ export default function LeadsIndex({ leads, users, filters, statuses, sources, s
     const isColumnVisible = (columnValue) => {
         if (visibleColumns.length === 0) return true;
         return visibleColumns.includes(columnValue);
+    };
+
+    const handlePerPageChange = (newPerPage) => {
+        setPerPage(newPerPage);
+        const params = { ...getCleanParams(searchForm.data), per_page: newPerPage };
+        router.get(route('leads.index'), params, {
+            preserveState: true,
+            preserveScroll: false,
+        });
     };
 
     // Re-apply selected filter after page reload (when filter is edited)
@@ -335,7 +356,7 @@ export default function LeadsIndex({ leads, users, filters, statuses, sources, s
                                         });
                                     }
                                 }}
-                                className="rounded-lg border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                                className="min-w-[240px] rounded-lg border-gray-300 py-2 px-3 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                             >
                                 <option value="">All (No Filter)</option>
                                 {savedFilters.map((filter) => (
@@ -433,13 +454,13 @@ export default function LeadsIndex({ leads, users, filters, statuses, sources, s
                             </div>
 
                             {showFilters && (
-                                <div className="grid grid-cols-1 gap-4 rounded-lg border border-gray-200 p-4 dark:border-gray-700 md:grid-cols-2 lg:grid-cols-5">
+                                <div className="grid grid-cols-1 gap-6 rounded-lg border border-gray-200 p-6 dark:border-gray-700 md:grid-cols-2 lg:grid-cols-5">
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Status</label>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Status</label>
                                         <select
                                             value={searchForm.data.status}
                                             onChange={(e) => searchForm.setData('status', e.target.value)}
-                                            className="mt-1 w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                                            className="w-full rounded-lg border-gray-300 py-2.5 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                                         >
                                             <option value="">All Statuses</option>
                                             {statuses.map((status) => (
@@ -451,11 +472,11 @@ export default function LeadsIndex({ leads, users, filters, statuses, sources, s
                                     </div>
 
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Source</label>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Source</label>
                                         <select
                                             value={searchForm.data.source}
                                             onChange={(e) => searchForm.setData('source', e.target.value)}
-                                            className="mt-1 w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                                            className="w-full rounded-lg border-gray-300 py-2.5 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                                         >
                                             <option value="">All Sources</option>
                                             {sources.map((source) => (
@@ -467,11 +488,11 @@ export default function LeadsIndex({ leads, users, filters, statuses, sources, s
                                     </div>
 
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Assigned To</label>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Assigned To</label>
                                         <select
                                             value={searchForm.data.assigned_to}
                                             onChange={(e) => searchForm.setData('assigned_to', e.target.value)}
-                                            className="mt-1 w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                                            className="w-full rounded-lg border-gray-300 py-2.5 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                                         >
                                             <option value="">All Users</option>
                                             {users.map((user) => (
@@ -483,22 +504,22 @@ export default function LeadsIndex({ leads, users, filters, statuses, sources, s
                                     </div>
 
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Date From</label>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Date From</label>
                                         <input
                                             type="date"
                                             value={searchForm.data.date_from}
                                             onChange={(e) => searchForm.setData('date_from', e.target.value)}
-                                            className="mt-1 w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                                            className="w-full rounded-lg border-gray-300 py-2.5 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                                         />
                                     </div>
 
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Date To</label>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Date To</label>
                                         <input
                                             type="date"
                                             value={searchForm.data.date_to}
                                             onChange={(e) => searchForm.setData('date_to', e.target.value)}
-                                            className="mt-1 w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                                            className="w-full rounded-lg border-gray-300 py-2.5 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                                         />
                                     </div>
                                 </div>
@@ -690,54 +711,14 @@ export default function LeadsIndex({ leads, users, filters, statuses, sources, s
                     </div>
 
                     {/* Pagination */}
-                    {leads.links.length > 3 && (
-                        <div className="flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 dark:border-gray-700 dark:bg-gray-800 sm:px-6">
-                            <div className="flex flex-1 justify-between sm:hidden">
-                                {leads.prev_page_url && (
-                                    <Link
-                                        href={leads.prev_page_url}
-                                        className="relative inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
-                                    >
-                                        Previous
-                                    </Link>
-                                )}
-                                {leads.next_page_url && (
-                                    <Link
-                                        href={leads.next_page_url}
-                                        className="relative ml-3 inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
-                                    >
-                                        Next
-                                    </Link>
-                                )}
-                            </div>
-                            <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
-                                <div>
-                                    <p className="text-sm text-gray-700 dark:text-gray-300">
-                                        Showing <span className="font-medium">{leads.from}</span> to <span className="font-medium">{leads.to}</span> of{' '}
-                                        <span className="font-medium">{leads.total}</span> results
-                                    </p>
-                                </div>
-                                <div>
-                                    <nav className="isolate inline-flex -space-x-px rounded-md shadow-sm">
-                                        {leads.links.map((link, index) => (
-                                            <Link
-                                                key={index}
-                                                href={link.url || '#'}
-                                                className={`relative inline-flex items-center px-4 py-2 text-sm font-medium ${
-                                                    link.active
-                                                        ? 'z-10 bg-indigo-600 text-white'
-                                                        : 'bg-white text-gray-700 hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700'
-                                                } ${index === 0 ? 'rounded-l-md' : ''} ${
-                                                    index === leads.links.length - 1 ? 'rounded-r-md' : ''
-                                                } border border-gray-300 dark:border-gray-600`}
-                                                dangerouslySetInnerHTML={{ __html: link.label }}
-                                            />
-                                        ))}
-                                    </nav>
-                                </div>
-                            </div>
-                        </div>
-                    )}
+                    <Pagination
+                        links={leads.links}
+                        from={leads.from}
+                        to={leads.to}
+                        total={leads.total}
+                        perPage={perPage}
+                        onPerPageChange={handlePerPageChange}
+                    />
                 </div>
             </div>
 
@@ -804,6 +785,9 @@ export default function LeadsIndex({ leads, users, filters, statuses, sources, s
                 editingFilter={editingFilter}
                 module="leads"
             />
+
+            {/* Scroll to Top Button */}
+            <ScrollToTop />
         </AuthenticatedLayout>
     );
 }
